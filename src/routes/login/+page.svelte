@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import type { AuthError } from '@supabase/supabase-js';
 
 	let { data } = $props();
 
@@ -17,7 +18,6 @@
 	let username = $state('');
 	let busy = $state(false);
 	let error = $state(page.url.searchParams.has('error') ? 'Inloggen mislukt, probeer het opnieuw.' : '');
-	let message = $state('');
 
 	async function oauth(provider: 'github' | 'google') {
 		error = '';
@@ -28,11 +28,32 @@
 		if (err) error = 'Inloggen mislukt, probeer het opnieuw.';
 	}
 
+	// Map Supabase sign-up errors to a specific Dutch message; the raw error stays in the console for debugging.
+	function signUpMessage(err: AuthError): string {
+		console.error('signUp failed', err.code, err.message);
+		switch (err.code) {
+			case 'over_email_send_rate_limit':
+			case 'over_request_rate_limit':
+				return 'Er zijn te veel registraties of mails verstuurd. Probeer het over een uur opnieuw.';
+			case 'email_address_not_authorized':
+				return 'Er kunnen nog geen mails naar dit adres worden gestuurd.';
+			case 'email_address_invalid':
+			case 'validation_failed':
+				return 'Dit e-mailadres wordt niet geaccepteerd.';
+			case 'weak_password':
+				return 'Dit wachtwoord is te zwak. Kies een langer of moeilijker wachtwoord.';
+			case 'user_already_exists':
+			case 'email_exists':
+				return 'Er bestaat al een account met dit e-mailadres.';
+			default:
+				return 'Registreren mislukt. Probeer het later opnieuw.';
+		}
+	}
+
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		busy = true;
 		error = '';
-		message = '';
 
 		if (mode === 'in') {
 			const { error: err } = await data.supabase.auth.signInWithPassword({ email, password });
@@ -54,13 +75,10 @@
 			const { error: err } = await data.supabase.auth.signUp({
 				email,
 				password,
-				options: {
-					emailRedirectTo: `${location.origin}/auth/callback`,
-					data: { display_name: displayName.trim(), username: name }
-				}
+				options: { data: { display_name: displayName.trim(), username: name } }
 			});
-			if (err) error = 'Registreren mislukt. Gebruik een geldig e-mailadres en minimaal 6 tekens.';
-			else message = 'Check je e-mail en klik op de link om je account te bevestigen.';
+			if (err) error = signUpMessage(err);
+			else await goto('/', { invalidateAll: true });
 		}
 		busy = false;
 	}
@@ -120,7 +138,6 @@
 			onclick={() => {
 				mode = mode === 'in' ? 'up' : 'in';
 				error = '';
-				message = '';
 			}}
 		>
 			{mode === 'in' ? 'Nog geen account? Registreren' : 'Al een account? Inloggen'}
@@ -128,7 +145,5 @@
 	</form>
 
 	{#if error}<p role="alert" class="text-red-600">{error}</p>{/if}
-	{#if message}<p role="status">{message}</p>{/if}
-
 	<a class="text-sm underline" href="/">Verder als gast</a>
 </main>

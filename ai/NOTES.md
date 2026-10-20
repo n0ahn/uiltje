@@ -81,6 +81,8 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Keybind-to-Greek input design (later).
 
 ## Errors & gotchas
+- Email confirmation is OFF (Supabase Auth → Email → "Confirm email" disabled) and removed from the code: `signUp` returns a session, so the login page goes straight to `/` after registering (no "check je e-mail" message, no `emailRedirectTo`). `/auth/callback` stays for GitHub/Google OAuth. Keep the Supabase setting off, otherwise sign-up leaves the user signed out without feedback.
+- Sign-up showed "geldig e-mailadres en minimaal 6 tekens" for a valid address: it was a catch-all for every `signUp` error. Now `signUpMessage()` in `login/+page.svelte` maps `err.code` (rate limit, address not authorized, weak password, already exists) and logs the raw error. Most likely real cause on a fresh Supabase project: the built-in SMTP only mails project members and is rate limited; fix with custom SMTP or by turning off "Confirm email" in Supabase Auth.
 - Phase 1 was verified outside the repo (scratch project: tsc strict + noUncheckedIndexedAccess clean, 24 scenario checks). Run `npm run check` in the real project once; config files were not part of the zip.
 
 ## Useful snippets / commands
