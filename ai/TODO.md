@@ -104,3 +104,4 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Bell next to the theme toggle; fixed the notifications effect loop in `+layout.svelte`
 - [ ] Run `ai/sql/003_profiles.sql` and try it with two accounts (public/private, friend profile, stats switch, delete account)
 - [ ] Visibility chip on `/sets` cards and in the set page menu
+- [x] Top bar (search, meldingen, thema, profiel) on every page via `AppShell`

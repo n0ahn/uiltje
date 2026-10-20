@@ -152,3 +152,5 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Bell moved from the sidebar to the top bar next to the theme toggle (`TopBar`), on every screen size; removed from `Sidebar`.
 - Bug: `+layout.svelte` effect_update_depth_exceeded and a laggy site. The `$effect` that calls `notifications.refresh()` after navigation read AND wrote `notifications.items` synchronously (the throttled path has no await before `this.items = ...`), so it re-triggered itself forever. Fix: call `refresh()` and `notifications.start()` inside `untrack()`. Rule of thumb: an effect that calls a state method must wrap it in `untrack()` unless it only reads what it should depend on.
 - Not done: viewing a friend's streak chart, public sets for non-friends, per-set visibility in the set page menu or `/sets` cards (only in the editor).
+
+- Top bar on every page: `AppShell` renders `TopBar` (search, bell, theme, profile menu; no title) above the content on every page except `/` (the dashboard keeps its own bar with the greeting) and the bare screens (login, practice). `TopBar`'s `title` is optional.

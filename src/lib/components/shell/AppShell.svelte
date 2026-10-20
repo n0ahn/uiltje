@@ -4,6 +4,7 @@
 	import Toast from '../ui/Toast.svelte';
 	import BottomNav from './BottomNav.svelte';
 	import Sidebar from './Sidebar.svelte';
+	import TopBar from './TopBar.svelte';
 	import CommandPalette from './CommandPalette.svelte';
 
 	type Props = { name: string; username: string; children: Snippet };
@@ -26,6 +27,8 @@
 	<Sidebar {name} {username} />
 	<div class="min-h-dvh sm:pl-18 lg:pl-62">
 		<main id="main" class="px-4 pt-5 pb-28 sm:px-8 sm:pt-8 sm:pb-12">
+			<!-- The dashboard has its own bar with the greeting; every other page gets the actions only. -->
+			{#if path !== '/'}<div class="mb-5"><TopBar {name} {username} /></div>{/if}
 			{@render children()}
 		</main>
 	</div>

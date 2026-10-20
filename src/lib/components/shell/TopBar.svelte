@@ -10,7 +10,8 @@
 	import ProfileMenu from './ProfileMenu.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 
-	type Props = { title: string; subtitle?: string; icon?: IconName; name: string; username: string };
+	/** Without a title only the actions are shown (every page except the dashboard). */
+	type Props = { title?: string; subtitle?: string; icon?: IconName; name: string; username: string };
 	let { title, subtitle, icon, name, username }: Props = $props();
 
 	// The OS is only known in the browser, so the hint appears after mount (⌘ K on Apple, Ctrl K elsewhere).
@@ -20,6 +21,7 @@
 </script>
 
 <header class="flex flex-wrap items-start gap-3 sm:flex-nowrap sm:gap-4">
+	{#if title}
 	<div class="min-w-0 flex-1 max-sm:basis-full">
 		<h1 class="flex items-center gap-2">
 			<span class="min-w-0 wrap-break-word">{title}</span>
@@ -27,9 +29,10 @@
 		</h1>
 		{#if subtitle}<p class="mt-1 text-text-muted">{subtitle}</p>{/if}
 	</div>
+	{/if}
 
 	<!-- Actions: on a phone they sit on their own row under the title. -->
-	<div class="flex items-center gap-3 sm:gap-4 max-sm:ml-auto">
+	<div class={['flex items-center gap-3 sm:gap-4', title ? 'max-sm:ml-auto' : 'ml-auto w-full justify-end']}>
 		<!-- Looks like a search field, opens the command palette. -->
 		<button
 			type="button"
