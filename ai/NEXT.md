@@ -37,7 +37,7 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 6. **Phase 7 polish.** Reduced-motion, dark mode, mobile pass and a11y over the whole app (the practice screens are already checked in light and dark at 1280px and 390px).
 7. **Phase 8 AI import.** OCR step, server route for Gemini with retry and model fallback, preview/edit screen before save. The API key stays on the server.
 8. **Phase 9 generated questions.** Decide the correctness strategy first (see Open questions), then templates (Stijlfiguren, Grammatica) and background generation.
-9.  **Vocab polish.** Try the learn flow with real classmates' sets and tune `roundSize`, spacing and distractor choice in `engine/vocab.ts`. Dedicated Meerkeuze, Flashcards, Dictee, Spelling and Hints modes (currently "Binnenkort" in `PracticeMenu.svelte`) can reuse the `MenuItem soon` slot: replace `soon` with an `href="...?mode=<id>"` and add the mode to `PracticeConfig`. Vocab rows in the same list with several translations are accepted in any of them.
+9.  **Vocab polish.** Try the learn flow with real classmates' sets and tune `roundSize`, spacing and distractor choice in `engine/vocab.ts`. The Meerkeuze, Flashcards, Dictee, Spelling and Hints modes exist now (NOTES "Practice modes"); try them and tune. Vocab rows in the same list with several translations are accepted in any of them.
 9. **Phase 10 default lists.** Curated library that users can add to their own sets.
 
 ## Open questions

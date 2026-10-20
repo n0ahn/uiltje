@@ -19,24 +19,16 @@
 		'friend-accepted': 'users',
 		share: 'share',
 		welcome: 'sparkles',
-		weetje: 'bulb',
-		motivatie: 'heart',
 		streak: 'flame',
-		'streak-risk': 'flame',
-		milestone: 'trophy',
-		'welcome-back': 'sparkles'
+		milestone: 'trophy'
 	};
 	const TONES: Record<NotificationKind, string> = {
 		'friend-request': 'bg-primary-soft text-primary-text',
 		'friend-accepted': 'bg-primary-soft text-primary-text',
 		share: 'bg-primary-soft text-primary-text',
 		welcome: 'bg-sage-soft text-text',
-		weetje: 'bg-surface-2 text-sky',
-		motivatie: 'bg-rose-soft text-rose-edge',
 		streak: 'bg-surface-2 text-flame',
-		'streak-risk': 'bg-surface-2 text-flame',
-		milestone: 'bg-surface-2 text-flame',
-		'welcome-back': 'bg-sage-soft text-text'
+		milestone: 'bg-surface-2 text-flame'
 	};
 
 	let open = $state(false);

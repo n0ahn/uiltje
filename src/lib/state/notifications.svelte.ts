@@ -1,12 +1,12 @@
 // Notification centre. Two sources, merged into one list:
 //  - live: what the server says right now (open friend requests, sets sent to you). They disappear once handled.
-//  - local: kept on this device (welcome, daily fact or motivation, streak and answer milestones, accepted requests).
+//  - local: kept on this device (welcome, streak and answer milestones, accepted requests). No tips or motivational lines.
 // Read state is kept per person (account id, or "guest"). Everything refreshes every minute while the tab is
 // visible, when the tab gets focus again and after navigating (throttled). No server changes are needed.
-import { dayKey, streakDays } from '../stats/stats';
+import { streakDays } from '../stats/stats';
 import { getStorage } from '../storage';
 import { getSocial } from '../social';
-import { ANSWER_MILESTONES, STREAK_MILESTONES, TIPS, WELCOME, answersNotice, streakNotice } from '../notifications/content';
+import { ANSWER_MILESTONES, STREAK_MILESTONES, WELCOME, answersNotice, streakNotice } from '../notifications/content';
 import type { AppNotification } from '../notifications/types';
 import { toasts } from './toast.svelte';
 
@@ -16,7 +16,9 @@ const KEEP_MS = 45 * DAY;
 const POLL_MS = 60_000;
 const NETWORK_THROTTLE_MS = 15_000;
 const ACTIVITY_THROTTLE_MS = 2 * 60_000; // reading all sessions is the heaviest call
+/** Kinds that are still produced; older stored tips, welcomes and reminders are dropped when read. */
 const WELCOMED_KEY = 'uiltje:notif:welcomed'; // per device
+const KEPT_KINDS = new Set<AppNotification['kind']>(['welcome', 'friend-accepted', 'streak', 'milestone']);
 
 function read<T>(key: string, fallback: T): T {
 	try {
@@ -116,8 +118,7 @@ class NotificationState {
 
 		const stored = this.#loadLocal(now);
 		const announce: AppNotification[] = [];
-		this.#addWelcomeAndTips(stored, now, announce);
-		this.#addComeback(stored, now);
+		this.#addWelcome(stored, now, announce);
 
 		let live: AppNotification[] | null = null;
 		if (network) {
@@ -139,7 +140,7 @@ class NotificationState {
 	// ---- local notifications
 
 	#loadLocal(now: number): AppNotification[] {
-		return read<AppNotification[]>(this.#key('items'), []).filter((n) => now - n.createdAt < KEEP_MS);
+		return read<AppNotification[]>(this.#key('items'), []).filter((n) => KEPT_KINDS.has(n.kind) && now - n.createdAt < KEEP_MS);
 	}
 
 	#saveLocal(list: AppNotification[]): void {
@@ -153,51 +154,16 @@ class NotificationState {
 		return true;
 	}
 
-	/** First visit on this device: a welcome plus three facts. After that: one new fact or motivation per day. */
-	#addWelcomeAndTips(list: AppNotification[], now: number, announce: AppNotification[]): void {
-		const counterKey = this.#key('tip-counter');
-		const dayKeyName = this.#key('tip-day');
-		let counter = read<number>(counterKey, 0);
-		const tip = (n: number, createdAt: number): AppNotification => {
-			const t = TIPS[n % TIPS.length]!;
-			return { id: `tip:${n}`, kind: t.kind, title: t.title, text: t.text, createdAt };
-		};
-
-		if (read<boolean>(WELCOMED_KEY, false) === false) {
-			write(WELCOMED_KEY, true);
-			const welcome: AppNotification = { id: 'welcome', kind: 'welcome', title: WELCOME.title, text: WELCOME.text, createdAt: now };
-			this.#add(list, welcome);
-			announce.push(welcome);
-			for (let i = 0; i < 3; i++) this.#add(list, tip(counter++, now - (i + 1) * 1000));
-			write(counterKey, counter);
-			write(dayKeyName, dayKey(now));
-			return;
-		}
-		if (read<string>(dayKeyName, '') !== dayKey(now)) {
-			this.#add(list, tip(counter++, now));
-			write(counterKey, counter);
-			write(dayKeyName, dayKey(now));
-		}
+	/** First visit on this device: one welcome, nothing else. */
+	#addWelcome(list: AppNotification[], now: number, announce: AppNotification[]): void {
+		if (read<boolean>(WELCOMED_KEY, false)) return;
+		write(WELCOMED_KEY, true);
+		const welcome: AppNotification = { id: 'welcome', kind: 'welcome', title: WELCOME.title, text: WELCOME.text, createdAt: now };
+		this.#add(list, welcome);
+		announce.push(welcome);
 	}
 
-	/** Back after three days or more. */
-	#addComeback(list: AppNotification[], now: number): void {
-		const key = this.#key('last-visit');
-		const last = read<number>(key, 0);
-		if (last && now - last >= 3 * DAY) {
-			this.#add(list, {
-				id: `back:${dayKey(now)}`,
-				kind: 'welcome-back',
-				title: 'Fijn dat je er weer bent',
-				text: 'Een paar dagen weg? Geen probleem. Begin gewoon met één blokje, dan ben je er zo weer in.',
-				createdAt: now,
-				href: '/vakken'
-			});
-		}
-		write(key, now);
-	}
-
-	/** Streak and answer milestones, and the "your streak ends tonight" reminder. */
+	/** Streak and answer milestones. */
 	async #addActivity(list: AppNotification[], now: number): Promise<void> {
 		try {
 			const sessions = await getStorage().listSessions(0);
@@ -209,19 +175,6 @@ class NotificationState {
 			const total = sessions.reduce((sum, s) => sum + s.total, 0);
 			const answers = [...ANSWER_MILESTONES].filter((m) => m <= total).pop();
 			if (answers !== undefined) this.#add(list, { id: `answers:${answers}`, kind: 'milestone', ...answersNotice(answers), createdAt: now });
-
-			const today = dayKey(now);
-			const practisedToday = sessions.some((s) => s.total > 0 && dayKey(s.endedAt) === today);
-			if (streak >= 2 && !practisedToday && new Date(now).getHours() >= 17) {
-				this.#add(list, {
-					id: `risk:${today}`,
-					kind: 'streak-risk',
-					title: `Houd je reeks van ${streak} dagen vast`,
-					text: 'Je hebt vandaag nog niet geoefend. Eén blokje is genoeg.',
-					createdAt: now,
-					href: '/vakken'
-				});
-			}
 		} catch {
 			// Sessions could not be read (offline, storage error): skip the milestones this round.
 		}
@@ -298,7 +251,7 @@ class NotificationState {
 		if (fresh.length === 0) return;
 		if (fresh.length === 1) {
 			const n = fresh[0]!;
-			toasts.show(n.kind === 'welcome' ? 'Welkom bij Uiltje. Kijk bij je meldingen voor een paar tips.' : n.title, 4500);
+			toasts.show(n.kind === 'welcome' ? 'Welkom bij Uiltje' : n.title, 4500);
 		} else {
 			toasts.show(`${fresh.length} nieuwe meldingen`, 4500);
 		}

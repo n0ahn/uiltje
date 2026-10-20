@@ -53,7 +53,7 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Set-editor opnieuw: opslaan gaat naar de setpagina, lijstenmenu links, brede layout zonder max-width
 - [x] Opruiming: `engine/session.ts` weg, `StepBack` en `toProgressDeltas` in `engine/deltas.ts`
 - [x] Oefenstartscherm opnieuw: lijstkeuze links, Hoe/Richting/Start rechts, extra opties ingeklapt
-- [ ] Meerkeuze, Flashcards, Dictee, Spelling, Hints als aparte modi
+- [x] Meerkeuze, Flashcards, Dictee, Spelling, Hints als aparte modi (`engine/cards.ts`, `CardStart`, `CardRunner`)
 
 ## Phase 5 — Auth + persistence (PLAN §4, §5)
 - [x] Login page + OAuth callback, session in layout
@@ -73,7 +73,7 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 
 ## Meldingen (notification centre)
 - [x] Bell with unread badge + panel (`shell/NotificationBell.svelte`): sidebar (rail and lg), top bar on phones; closing marks as read, "Alles gelezen"
-- [x] Live: friend requests and sets sent to you; local: welcome + 3 learning facts on first visit, one fact or motivation per day, accepted friend request, streak and answer milestones, "reeks vasthouden" after 17:00, welcome back after 3+ days
+- [x] Live: friend requests and sets sent to you; local: one welcome on the first visit, accepted friend request, streak and answer milestones (no tips, motivation or reminders)
 - [x] Toast when something new arrives (`state/notifications.svelte.ts`)
 - [ ] Bell on every phone page (now only on the dashboard top bar; the bottom bar has no room)
 - [ ] Push/e-mail notifications (needs a server job), notification when a friend overtakes you on the leaderboard

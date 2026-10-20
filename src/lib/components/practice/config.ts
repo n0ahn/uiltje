@@ -1,4 +1,6 @@
 import type { Direction, StepBack } from '../../engine/blocks';
+import type { CardDirection, CardMode } from '../../engine/cards';
+import { CARD_MODES } from '../../engine/cards';
 import type { Strictness } from '../../engine/options';
 
 export type PracticeKind = 'rijtjes' | 'woorden';
@@ -54,3 +56,22 @@ export const STRICTNESS_OPTIONS: readonly Option<Strictness>[] = [
 
 export const QUESTION_COUNT_CHOICES = [10, 20, 30, 50] as const;
 export const TIME_LIMIT_CHOICES = [2, 5, 10, 15, 30] as const;
+
+/** The single-pass modes (engine/cards.ts), opened with `?mode=<id>` from the practice menu. */
+export type CardConfig = {
+	mode: CardMode;
+	selection: Record<string, string[]>;
+	direction: CardDirection;
+	/** Retry: only these rows (row keys), null = everything that was selected. */
+	onlyRowKeys: string[] | null;
+};
+
+export const CARD_MODE_INFO: Record<CardMode, { name: string; text: string }> = {
+	flashcards: { name: 'Flashcards', text: 'Draai de kaart om en zeg of je het wist. Telt niet mee voor je voortgang.' },
+	choice: { name: 'Meerkeuze', text: 'Kies het goede antwoord uit een paar opties.' },
+	dictation: { name: 'Dictee', text: 'Je hoort het woord en typt het op. Handig voor de spelling.' },
+	spelling: { name: 'Spelling', text: 'Typ het woord precies goed: accenten tellen mee en je ziet welke letters fout zijn.' },
+	hints: { name: 'Hints', text: 'Typ het antwoord; vraag zo nodig om een hint: eerste letter, het patroon, het antwoord.' }
+};
+
+export const isCardMode = (value: string | null): value is CardMode => !!value && (CARD_MODES as readonly string[]).includes(value);
