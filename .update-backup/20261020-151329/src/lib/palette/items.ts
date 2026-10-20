@@ -1,0 +1,100 @@
+// Everything the command palette can find. Static sample data for now (like the dashboard);
+// when sets, subjects and friends come from storage (phases 3-6) only the lists below change.
+import { accentFor } from '../components/ui/accent';
+import { NAV } from '../components/shell/nav';
+import { friendRanking, recentPractice, recentSets, subjects } from '../dashboard/sample';
+import { theme } from '../state/theme.svelte';
+import type { PaletteItem } from './types';
+
+/** Extra search terms per page (the label itself is always searchable). */
+const PAGE_KEYWORDS: Record<string, string[]> = {
+	'/': ['dashboard', 'start', 'overzicht'],
+	'/vakken': ['talen', 'latijn', 'grieks'],
+	'/sets': ['mijn sets', 'rijtjes', 'lijsten', 'woorden'],
+	'/friends': ['ranglijst', 'leaderboard', 'vriend'],
+	'/stats': ['voortgang', 'streak', 'grafiek'],
+	'/settings': ['thema', 'geluid', 'profiel', 'account', 'nakijken']
+};
+
+/** Flip light/dark from what is on screen, so it also works before ThemeToggle has initialised the theme state. */
+function toggleTheme(): void {
+	const forced = document.documentElement.dataset.theme;
+	const dark = forced ? forced === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+	theme.set(dark ? 'light' : 'dark');
+}
+
+export function buildPaletteItems(): PaletteItem[] {
+	const items: PaletteItem[] = [];
+
+	if (recentPractice) {
+		items.push({
+			id: 'continue',
+			group: 'continue',
+			title: 'Verder oefenen',
+			subtitle: `${recentPractice.title} · stap ${recentPractice.stage} van ${recentPractice.stageCount}`,
+			keywords: ['hervat', 'doorgaan', 'oefenen', recentPractice.title],
+			icon: 'play',
+			accent: 'primary',
+			href: recentPractice.href
+		});
+	}
+
+	for (const set of recentSets) {
+		items.push({
+			id: `set:${set.href}`,
+			group: 'sets',
+			title: set.title,
+			subtitle: `${set.subject} · ${set.percentMastered}% onder de knie`,
+			keywords: [set.subject],
+			icon: set.icon,
+			accent: set.accent,
+			href: set.href
+		});
+	}
+
+	for (const subject of subjects) {
+		items.push({
+			id: `vak:${subject.slug}`,
+			group: 'vakken',
+			title: subject.name,
+			subtitle: `${subject.sets} sets`,
+			icon: subject.icon,
+			accent: subject.accent,
+			href: `/vak/${subject.slug}`
+		});
+	}
+
+	for (const friend of friendRanking) {
+		items.push({
+			id: `vriend:${friend.name}`,
+			group: 'vrienden',
+			title: friend.name,
+			subtitle: `${friend.practiced} onderdelen deze week`,
+			icon: 'users',
+			accent: accentFor(friend.name),
+			avatar: friend.name,
+			href: '/friends'
+		});
+	}
+
+	for (const page of NAV) {
+		items.push({
+			id: `pagina:${page.href}`,
+			group: 'pages',
+			title: page.label,
+			keywords: PAGE_KEYWORDS[page.href],
+			icon: page.icon,
+			href: page.href
+		});
+	}
+
+	items.push(
+		{ id: 'actie:nieuwe-set', group: 'actions', title: 'Nieuwe set', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', accent: 'primary', href: '/sets/new' },
+		{ id: 'actie:importeren', group: 'actions', title: 'Set importeren', keywords: ['json', 'plakken', 'uploaden'], icon: 'import', href: '/sets/new?import=1' },
+		{ id: 'actie:nieuw-vak', group: 'actions', title: 'Nieuw vak', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', href: '/vak/nieuw' },
+		{ id: 'actie:vriend', group: 'actions', title: 'Vriend toevoegen', keywords: ['gebruikersnaam', 'uitnodigen'], icon: 'user-plus', href: '/friends' },
+		{ id: 'actie:thema', group: 'actions', title: 'Thema wisselen', subtitle: 'Licht of donker', keywords: ['dark mode', 'donker', 'licht', 'nacht'], icon: 'moon', run: toggleTheme }
+	);
+
+	return items;
+}

@@ -1,0 +1,446 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/nunito';
+
+/* ---------------------------------------------------------------------------
+   Design tokens (DESIGN.md §2). Light values live in @theme; dark overrides below.
+   Theme switching: data-theme="light|dark" on <html>; without it we follow prefers-color-scheme.
+   Components use tokens only, never hardcoded colors.
+   --------------------------------------------------------------------------- */
+@theme {
+	--font-heading: 'Fredoka Variable', ui-rounded, 'Nunito Variable', system-ui, sans-serif;
+	--font-body: 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+	--font-greek: 'Nunito Variable', 'Noto Serif', serif;
+
+	--color-bg: #f7f0e1;
+	--color-surface: #fff9ec;
+	--color-surface-2: #f1e6d0;
+	--color-border: #e4d5b8;
+	--color-text: #4a3b35;
+	--color-text-muted: #765f52;
+	--color-ink: #6e4f6b;
+	--color-primary: #c97b55;
+	--color-primary-edge: #a85f3e;
+	--color-primary-soft: #f3d9c8;
+	--color-primary-text: #8a4a2d;
+	/* Filled primary buttons: a touch darker than --color-primary so cream text reaches 4.5:1 */
+	--color-primary-btn: #ad613a;
+	--color-primary-btn-edge: #8a4a2d;
+	--color-on-primary: #fffdf6;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #dde8d6;
+	--color-wheat: #d8b98a;
+	--color-clay: #b88b6a;
+	--color-rose: #e8a5a0;
+	--color-rose-edge: #c98079;
+	--color-rose-soft: #f7dad5;
+	--color-sky: #7fa2c4;
+	--color-lilac: #9a86b8;
+	--color-flame: #e88b3c;
+	--color-mint: #bcebd2;
+	--color-pink: #ffa8dc;
+	--color-cream: #fff4de;
+	--color-cream-edge: #d9c5a0;
+	--color-on-accent: #2f2622;
+
+	/* Mascot (fixed in both themes so the owl always looks like the owl) */
+	--color-owl: #a9805f;
+	--color-owl-dark: #8c6648;
+	--color-belly: #fff4de;
+	--color-beak: #e0955a;
+	--color-pupil: #3a2b25;
+	--color-glint: #ffffff;
+
+	--radius-card: 24px;
+	--radius-panel: 28px;
+	--radius-button: 18px;
+	--radius-input: 16px;
+	--radius-tile: 14px;
+
+	--shadow-color: rgb(74 59 53 / 0.22);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+
+	--ease-cozy: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root {
+	--glow-opacity: 0.18; /* lamp glow in illustrations */
+	color-scheme: light;
+}
+
+/* Dark theme, explicit */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--color-bg: #241c19;
+	--color-surface: #2f2622;
+	--color-surface-2: #3a302b;
+	--color-border: #4a3d36;
+	--color-text: #f3e7d3;
+	--color-text-muted: #b8a593;
+	--color-ink: #e6cfa8;
+	--color-primary: #d98b63;
+	--color-primary-edge: #a8613f;
+	--color-primary-soft: #4a3226;
+	--color-primary-text: #f0b591;
+	--color-primary-btn: #d98b63;
+	--color-primary-btn-edge: #a8613f;
+	--color-on-primary: #2a1a12;
+	--color-sage: #9dbb98;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #2f3d2e;
+	--color-rose-soft: #4a2e2b;
+	--color-mint: #2f4a3c;
+	--color-cream: #3a302b;
+	--color-cream-edge: #4a3d36;
+	--shadow-color: rgb(0 0 0 / 0.45);
+	--glow-opacity: 0.5;
+}
+
+/* Dark theme, following the system unless the user forced light */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--color-bg: #241c19;
+		--color-surface: #2f2622;
+		--color-surface-2: #3a302b;
+		--color-border: #4a3d36;
+		--color-text: #f3e7d3;
+		--color-text-muted: #b8a593;
+		--color-ink: #e6cfa8;
+		--color-primary: #d98b63;
+		--color-primary-edge: #a8613f;
+		--color-primary-soft: #4a3226;
+		--color-primary-text: #f0b591;
+		--color-primary-btn: #d98b63;
+		--color-primary-btn-edge: #a8613f;
+		--color-on-primary: #2a1a12;
+		--color-sage: #9dbb98;
+		--color-sage-edge: #6f916b;
+		--color-sage-soft: #2f3d2e;
+		--color-rose-soft: #4a2e2b;
+		--color-mint: #2f4a3c;
+		--color-cream: #3a302b;
+		--color-cream-edge: #4a3d36;
+		--shadow-color: rgb(0 0 0 / 0.45);
+		--glow-opacity: 0.5;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+@layer base {
+	html {
+		/* Always reserve the scrollbar's space, so pages do not shift sideways when they become scrollable. */
+		scrollbar-gutter: stable;
+		background: var(--color-bg);
+		color: var(--color-text);
+		font-family: var(--font-body);
+		-webkit-text-size-adjust: 100%;
+	}
+	body {
+		min-height: 100dvh;
+	}
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-heading);
+		letter-spacing: 0.01em;
+		line-height: 1.2;
+	}
+	h1 {
+		font-size: 1.65rem;
+		font-weight: 700;
+	}
+	h2 {
+		font-size: 1.3rem;
+		font-weight: 600;
+	}
+	h3 {
+		font-size: 1.1rem;
+		font-weight: 600;
+	}
+	@media (min-width: 640px) {
+		h1 {
+			font-size: 2rem;
+		}
+		h2 {
+			font-size: 1.5rem;
+		}
+		h3 {
+			font-size: 1.2rem;
+		}
+	}
+	:focus-visible {
+		outline: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+		outline-offset: 2px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Chunky button (DESIGN.md §3.1): .btn + data-variant / data-size / data-icon
+   --------------------------------------------------------------------------- */
+@layer components {
+	.btn {
+		--btn-fill: var(--color-primary-btn);
+		--btn-edge: var(--color-primary-btn-edge);
+		--btn-text: var(--color-on-primary);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 44px;
+		padding: 0 1.25rem;
+		border: 2.5px solid var(--color-ink);
+		border-radius: var(--radius-button);
+		background: var(--btn-fill);
+		color: var(--btn-text);
+		font-family: var(--font-heading);
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		line-height: 1;
+		text-decoration: none;
+		white-space: nowrap;
+		cursor: pointer;
+		user-select: none;
+		box-shadow: 0 5px 0 0 var(--btn-edge);
+		transition:
+			transform 90ms var(--ease-cozy),
+			box-shadow 90ms var(--ease-cozy);
+	}
+	.btn[data-variant='secondary'] {
+		--btn-fill: var(--color-cream);
+		--btn-edge: var(--color-cream-edge);
+		--btn-text: var(--color-ink);
+	}
+	.btn[data-variant='sage'] {
+		--btn-fill: var(--color-sage);
+		--btn-edge: var(--color-sage-edge);
+		--btn-text: var(--color-on-accent);
+	}
+	.btn[data-variant='danger'] {
+		--btn-fill: var(--color-rose);
+		--btn-edge: var(--color-rose-edge);
+		--btn-text: var(--color-on-accent);
+	}
+	.btn[data-variant='ghost'] {
+		--btn-text: var(--color-ink);
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+	.btn[data-size='sm'] {
+		min-height: 36px;
+		padding: 0 1rem;
+		font-size: 0.9rem;
+	}
+	.btn[data-size='lg'] {
+		min-height: 56px;
+		padding: 0 1.75rem;
+		font-size: 1.1rem;
+	}
+	.btn[data-icon] {
+		width: 44px;
+		padding: 0;
+		border-radius: 22%;
+	}
+	.btn[data-icon][data-size='sm'] {
+		width: 36px;
+	}
+	.btn[data-icon][data-size='lg'] {
+		width: 56px;
+	}
+	.btn:hover:not(:disabled):not([aria-disabled='true']) {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 0 0 var(--btn-edge);
+	}
+	.btn:active:not(:disabled):not([aria-disabled='true']) {
+		transform: translateY(4px);
+		box-shadow: 0 1px 0 0 var(--btn-edge);
+	}
+	.btn[data-variant='ghost']:hover:not(:disabled) {
+		transform: none;
+		box-shadow: none;
+		text-decoration: underline;
+	}
+	.btn[data-variant='ghost']:active:not(:disabled) {
+		transform: none;
+		box-shadow: none;
+	}
+	.btn:disabled,
+	.btn[aria-disabled='true'] {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	/* -----------------------------------------------------------------------
+	   Answer input (DESIGN.md §3.5)
+	   ----------------------------------------------------------------------- */
+	.input {
+		width: 100%;
+		min-height: 3rem;
+		padding: 0 1rem;
+		border: 2px solid var(--color-border);
+		border-radius: var(--radius-input);
+		background: var(--color-surface-2);
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: 1rem;
+		font-weight: 600;
+		transition:
+			border-color 160ms var(--ease-cozy),
+			background-color 160ms var(--ease-cozy);
+	}
+	.input::placeholder {
+		color: var(--color-text-muted);
+		opacity: 0.6;
+	}
+	.input:focus {
+		border-color: var(--color-primary);
+		background: var(--color-surface);
+	}
+	.input[data-answer] {
+		min-height: 3.25rem;
+		font-size: 1.25rem;
+	}
+	.input[data-state='correct'] {
+		border-color: var(--color-sage);
+		background: var(--color-sage-soft);
+		padding-right: 2.75rem;
+	}
+	.input[data-state='wrong'] {
+		border-color: var(--color-rose);
+		background: var(--color-rose-soft);
+		animation: wiggle 160ms var(--ease-cozy);
+	}
+	.input[data-state='revealed'] {
+		border-style: dashed;
+		color: var(--color-text-muted);
+	}
+
+	/* -----------------------------------------------------------------------
+	   Modal / sheet (DESIGN.md §3.8) and toast (§3.7)
+	   ----------------------------------------------------------------------- */
+	.modal {
+		width: min(520px, calc(100vw - 2rem));
+		max-height: calc(100dvh - 4rem);
+		margin: auto;
+		padding: 0;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-panel);
+		background: var(--color-surface);
+		color: var(--color-text);
+		box-shadow: var(--shadow-card);
+		overflow: auto;
+	}
+	.modal::backdrop {
+		background: rgb(36 28 25 / 0.45);
+		backdrop-filter: blur(2px);
+	}
+	.modal[open] {
+		animation: pop-in 180ms var(--ease-cozy);
+	}
+	@media (max-width: 639px) {
+		.modal {
+			width: 100%;
+			max-width: none;
+			margin: auto 0 0;
+			border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+		.modal[open] {
+			animation: sheet-in 220ms var(--ease-cozy);
+		}
+	}
+	.toast {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 1.1rem 0.6rem 0.7rem;
+		border: 2.5px solid var(--color-ink);
+		border-radius: 999px;
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-family: var(--font-heading);
+		font-weight: 500;
+		box-shadow: 0 4px 0 0 var(--color-cream-edge);
+		animation: pop-in 180ms var(--ease-cozy);
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Keyframes
+   --------------------------------------------------------------------------- */
+@keyframes wiggle {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	25% {
+		transform: translateX(-4px);
+	}
+	75% {
+		transform: translateX(4px);
+	}
+}
+@keyframes check-pop {
+	0% {
+		transform: translateY(-50%) scale(0.8);
+	}
+	60% {
+		transform: translateY(-50%) scale(1.1);
+	}
+	100% {
+		transform: translateY(-50%) scale(1);
+	}
+}
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes sheet-in {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes twinkle {
+	0%,
+	100% {
+		opacity: 0.5;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+@keyframes blink {
+	0%,
+	94%,
+	100% {
+		transform: scaleY(1);
+	}
+	97% {
+		transform: scaleY(0.1);
+	}
+}
+
+/* prefers-reduced-motion: no wiggle, sparkle, blink or sliding; colors and static icons stay */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+}
