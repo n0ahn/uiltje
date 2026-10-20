@@ -45,6 +45,15 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Svelte 5 gotcha: `$props.id()` must be a direct `const x = $props.id()` initializer. Tailwind: `block` and `flex` on one element both apply; the later utility in the stylesheet wins (`flex`), so Card only adds `block` for links.
 - Verified in a scratch SvelteKit 3 project outside the repo: `svelte-check` 0 errors/warnings, dev server without console errors, screenshots light/dark at 1440, 820 and 390px, theme toggle + persistence + Ctrl+K checked.
 
+## Meldingen
+- No SQL change: everything is derived from calls that already exist. `state/notifications.svelte.ts` merges *live* items (open requests via `listFriendships`, sets via `listIncomingShares`; they vanish once handled, ids `fr:<person>:<createdAt>` and `sh:<shareId>`) with *local* items stored per person in localStorage (`uiltje:notif:items|read|tip-counter|tip-day|last-visit|pending-out|announced:<userId|guest>`, max 40 items, 45 days). The state file talks to localStorage directly like `theme.svelte.ts`; components never do.
+- Accepted request: the server has no "accepted at", so each poll stores your outgoing pending ids (`pending-out`); a friend who was in that list and is now accepted gives `fa:<id>`. Accepting via invite link or accepting somebody else's request does not notify (correct).
+- First visit on a device (`uiltje:notif:welcomed`, per device): welcome + 3 facts, then one fact/motivation per day from `notifications/content.ts` (facts are worded modestly: research gives tendencies). Streak milestones (3, 7, 14, 30, 60, 100) and answer milestones (100 … 10000) fire once, only the highest reached; "Houd je reeks vast" when streak >= 2, nothing practised today and it is after 17:00.
+- Refresh: on start (login/logout), every 60 s while the tab is visible, when the tab becomes visible, after each navigation (network throttled to 15 s, sessions to 2 min), and when the panel opens. A failed network call keeps the live items that are shown.
+- Toasts: one new item -> its title; several -> "N nieuwe meldingen"; welcome has its own text. Only new live items and accepted requests toast, never tips.
+- UI: `NotificationBell` has its own top-layer panel (Popover API, like Dropdown) because `Dropdown` only holds menu rows. Rows with an `href` are links, others plain rows; unread rows stay highlighted while the panel is open and are marked read on close. New Lucide icons `bell`, `sparkles`, `heart`. TopBar: actions moved into one wrapper that sits on its own row under the title on phones (more room for title, bell, theme, Inloggen).
+- Verified: svelte compiler (0 warnings), strict `tsc` on the notification files with stubs, 18 scenario checks of the state (welcome, daily tip, live requests/shares, accepted friend, milestones, toasts, network error, per-user keys). Not seen in a browser.
+
 ## Login redesign + favicon
 - `/login` follows DESIGN §6.8: plain app background (no mint backdrop, no bushes/butterflies: removed on request, so DESIGN §6.8's "mint game world" no longer applies to login), a compact one-screen card (small owl + plain Fredoka "Uiltje" title in a header row, thinking while busy; no pink bubble title, removed on request; weergavenaam/gebruikersnaam stacked), `Segmented` for inloggen/registreren instead of a text link, `Input` components, show/hide password (new Lucide icons `eye`, `eye-off` in `Icon.svelte`), ThemeToggle top right. The auth logic is the social version's (`?next=` redirect, email-confirmation notice); the redesign only touched markup and added `showPassword`/`modes`.
 - The reserved `min-h-11` slot under the submit button shows either the error (rose, small oops owl) or the "check je e-mail" notice (`message`, sage, happy owl), so buttons never move.
@@ -98,6 +107,7 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Keybind-to-Greek input design (later).
 
 ## Errors & gotchas
+- `/leaderboard` did nothing when clicked: the old placeholder `routes/leaderboard/+page.ts` (`redirect(307, '/friends')`) was still there, so its `load` ran before the real `+page.svelte` and bounced every visit to `/friends`. Deleted. When a route gets a real page, remove the placeholder redirect in the same change.
 - Phase 1 was verified outside the repo (scratch project: tsc strict + noUncheckedIndexedAccess clean, 24 scenario checks). Run `npm run check` in the real project once; config files were not part of the zip.
 
 ## Useful snippets / commands
@@ -131,3 +141,14 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Gotcha: a click before hydration does nothing (SSR radios); browser tests must wait for networkidle.
 
 - Vocab-algoritme is eigen ontwerp naar Quizlet Learn/StudyGo Leren (niveaus 0-4, 2x ongeholpen typen = geleerd, fout = terug naar niveau 1). Afstemmen in engine/vocab.ts.
+
+
+## Social update: profiles, public/private sets, settings tabs, delete account
+- SQL `ai/sql/003_profiles.sql` (run once after 002, idempotent): `sets.is_public` (default false), RPCs `get_profile(username)` (jsonb; own profile or an accepted friend's, otherwise null), `get_public_set(id)` (friend's public set or your own) and `delete_my_account()` (deletes the auth user, everything cascades). Friends still never read each other's tables.
+- Public = visible to accepted friends on the profile, who can copy it (copy is independent and private). Visibility lives in the column, not in the set JSON (no schemaVersion bump); `StorageAdapter.saveSet` never touches it. The editor (`SetEditor`) has a Privé/Openbaar `Segmented` for accounts only and applies it after the set is saved (`applyVisibility`), so a new set gets its visibility with its first successful save.
+- Profile statistics reuse the existing privacy switch `show_on_leaderboard` (copy now says "statistieken aan vrienden"). When off, the friend sees "houdt statistieken privé"; you always see your own. Stats: answers, accuracy, mastered rows (`streak >= 2`), tests, from `practice_sessions`/`row_progress`. The server returns only the end times of recent sessions (120 days, max 1000) and the client works out streak and "deze week" in the viewer's time zone with `stats/stats.ts`.
+- Routes: `/profile` = own profile (`ProfileView`), `/u/[username]` = a friend's, `/openbaar/[id]` = copy a friend's public set (`SharedSetView`). Profile editing (photo, names, privacy) moved to `/settings?tab=profiel` (`settings/ProfileSettings.svelte`). Settings has tabs Profiel (accounts only) / Voorkeuren / Account (`Segmented`, `?tab=` kept with `replaceState`). Friends and leaderboard rows link to profiles (`PersonRow href`).
+- Delete account: Account tab, confirm by typing your username. The app removes the avatar object first (storage rows cannot be deleted from SQL), then calls `delete_my_account()`, signs out locally and goes home. Not seen against the real project yet.
+- Bell moved from the sidebar to the top bar next to the theme toggle (`TopBar`), on every screen size; removed from `Sidebar`.
+- Bug: `+layout.svelte` effect_update_depth_exceeded and a laggy site. The `$effect` that calls `notifications.refresh()` after navigation read AND wrote `notifications.items` synchronously (the throttled path has no await before `this.items = ...`), so it re-triggered itself forever. Fix: call `refresh()` and `notifications.start()` inside `untrack()`. Rule of thumb: an effect that calls a state method must wrap it in `untrack()` unless it only reads what it should depend on.
+- Not done: viewing a friend's streak chart, public sets for non-friends, per-set visibility in the set page menu or `/sets` cards (only in the editor).

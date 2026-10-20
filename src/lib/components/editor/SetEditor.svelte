@@ -7,6 +7,8 @@
 	import { toDraft } from '../../editor/json';
 	import { EditorState, emptyDraft } from '../../editor/state.svelte';
 	import { TEMPLATE_CATEGORIES, type TemplateId } from '../../editor/templates';
+	import { getSocial } from '../../social';
+	import { auth } from '../../state/auth.svelte';
 	import { toasts } from '../../state/toast.svelte';
 	import { getStorage } from '../../storage';
 	import { StorageError } from '../../storage/adapter';
@@ -17,6 +19,7 @@
 	import MenuItem from '../ui/MenuItem.svelte';
 	import Modal from '../ui/Modal.svelte';
 	import Owl from '../ui/Owl.svelte';
+	import Segmented from '../ui/Segmented.svelte';
 	import JsonModal from './JsonModal.svelte';
 	import ListEditor from './ListEditor.svelte';
 	import PasteModal from './PasteModal.svelte';
@@ -42,6 +45,15 @@
 	// svelte-ignore state_referenced_locally
 	let persisted = $state(setId !== null); // exists in storage (so the URL is already /sets/<id>/edit)
 
+	// Public = friends see the set on your profile and can copy it. Kept outside the set JSON, so the schema stays as is.
+	// Accounts only: a guest's sets never leave the device.
+	const VISIBILITY = [
+		{ id: 'private', name: 'Privé', text: 'Alleen jij ziet deze set.' },
+		{ id: 'public', name: 'Openbaar', text: 'Je vrienden zien deze set op je profiel en kunnen er een eigen kopie van maken.' }
+	] as const;
+	let visibility = $state<'private' | 'public'>('private');
+	let appliedVisibility: 'private' | 'public' = 'private'; // what is stored
+
 	let pickerOpen = $state(false);
 	let pasteOpen = $state(false);
 	let pasteListId = $state('');
@@ -57,6 +69,14 @@
 		const all = await storage.listSets();
 		subjects = [...new Set([...DEFAULT_SUBJECTS, ...all.map((s) => s.subject)])];
 		folders = [...new Set(all.map((s) => s.folder).filter((f): f is string => !!f))];
+
+		if (auth.user && setId !== null) {
+			try {
+				visibility = appliedVisibility = (await getSocial().getVisibility(setId)) ? 'public' : 'private';
+			} catch {
+				// Stays private; the choice is saved with the next save.
+			}
+		}
 
 		const draft = loadDraft(draftKey);
 		if (setId === null) {
@@ -105,6 +125,7 @@
 			clearDraft(draftKey);
 			editor.markSaved();
 			issues = [];
+			await applyVisibility(result.set.id);
 			if (!auto) return true;
 			if (!persisted) {
 				persisted = true;
@@ -122,6 +143,24 @@
 			saving = false;
 		}
 		return true;
+	}
+
+	/** Stores the public/private choice once the set itself is in the account. */
+	async function applyVisibility(id: string) {
+		if (!auth.user || visibility === appliedVisibility) return;
+		const wanted = visibility;
+		try {
+			await getSocial().setVisibility(id, wanted === 'public');
+			appliedVisibility = wanted;
+		} catch (error) {
+			toasts.show(error instanceof StorageError ? error.message : 'Zichtbaarheid aanpassen is mislukt');
+		}
+	}
+
+	/** A change of visibility is saved like any other edit: shortly after, together with the set. */
+	function onVisibility() {
+		clearTimeout(timer);
+		timer = setTimeout(() => void persist(true), AUTOSAVE_MS);
 	}
 
 	/** The Opslaan button: save, then go to the set page. */
@@ -239,6 +278,11 @@
 					<datalist id="folders">{#each folders as f (f)}<option value={f}></option>{/each}</datalist>
 				</label>
 			</div>
+			{#if auth.user}
+				<div class="max-w-md">
+					<Segmented legend="Zichtbaarheid" options={VISIBILITY} bind:value={visibility} onchange={onVisibility} />
+				</div>
+			{/if}
 			<details class="rounded-tile bg-surface-2 px-3 py-2">
 				<summary class="cursor-pointer text-sm font-semibold text-text-muted">Nakijken: accenten, lange klinkers en hoofdletters</summary>
 				<div class="mt-3 flex flex-col gap-3 pb-1 md:flex-row md:gap-8">

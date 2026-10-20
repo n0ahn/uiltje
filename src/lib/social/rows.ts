@@ -1,7 +1,7 @@
 // zod schemas for what the social RPCs return (validate at every boundary), plus the mapping to app types.
 import { z } from 'zod';
 import { StorageError } from '../storage/adapter';
-import type { FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, Relation } from './types';
+import type { FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, ProfileView, Relation } from './types';
 
 const nullableText = z.string().nullable();
 const time = z.string().nullable();
@@ -66,6 +66,31 @@ export const sharedRow = z.object({
 	owner_avatar_updated_at: time
 });
 
+export const profileViewRow = z.object({
+	id: z.string(),
+	username: z.string(),
+	display_name: z.string(),
+	avatar_path: nullableText,
+	avatar_updated_at: time,
+	created_at: z.string(),
+	is_self: z.boolean(),
+	stats: z
+		.object({ answers: count, correct: count, sessions: count, tests: count, mastered: count })
+		.nullable(),
+	activity: z.array(z.coerce.number()),
+	sets: z.array(
+		z.object({
+			id: z.string(),
+			title: z.string(),
+			subject: z.string(),
+			list_count: count,
+			row_count: count,
+			is_public: z.boolean(),
+			updated_at: z.string()
+		})
+	)
+});
+
 /** Public URL of a stored avatar path; the version makes browsers fetch a new photo after a change. */
 export type AvatarUrl = (path: string | null, updatedAt: string | null) => string | null;
 
@@ -124,5 +149,24 @@ export function toIncoming(url: AvatarUrl, r: z.infer<typeof incomingRow>): Inco
 		rowCount: r.row_count,
 		sender: toPerson(url, r.sender_id, r.sender_username, r.sender_name, r.sender_avatar_path, r.sender_avatar_updated_at),
 		createdAt: Date.parse(r.created_at)
+	};
+}
+
+export function toProfileView(url: AvatarUrl, r: z.infer<typeof profileViewRow>): ProfileView {
+	return {
+		...toPerson(url, r.id, r.username, r.display_name, r.avatar_path, r.avatar_updated_at),
+		isSelf: r.is_self,
+		memberSince: Date.parse(r.created_at) || 0,
+		stats: r.stats,
+		activity: r.activity,
+		sets: r.sets.map((s) => ({
+			id: s.id,
+			title: s.title,
+			subject: s.subject,
+			listCount: s.list_count,
+			rowCount: s.row_count,
+			isPublic: s.is_public,
+			updatedAt: Date.parse(s.updated_at) || 0
+		}))
 	};
 }

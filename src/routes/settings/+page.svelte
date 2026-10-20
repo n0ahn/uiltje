@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import type { PageProps } from './$types';
 	import { DIRECTION_OPTIONS, STEP_BACK_OPTIONS, STRICTNESS_OPTIONS } from '#lib/components/practice/config.js';
-	import Button from '#lib/components/ui/Button.svelte';
+	import AccountSettings from '#lib/components/settings/AccountSettings.svelte';
+	import ProfileSettings from '#lib/components/settings/ProfileSettings.svelte';
+	import Segmented from '#lib/components/ui/Segmented.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import SettingsSkeleton from '#lib/components/skeleton/SettingsSkeleton.svelte';
 	import OptionGroup from '#lib/components/ui/OptionGroup.svelte';
@@ -11,16 +15,37 @@
 	import { LEVELS } from '#lib/schema/types.js';
 	import type { Level } from '#lib/schema/types.js';
 	import { LEVEL_LABELS } from '#lib/settings/settings.js';
-	import { auth } from '#lib/state/auth.svelte.js';
 	import { guestImport } from '#lib/state/guest-import.svelte.js';
 	import { settings } from '#lib/state/settings.svelte.js';
-	import { displayName, username } from '#lib/utils/user.js';
 	import { theme, type ThemePreference } from '#lib/state/theme.svelte.js';
 
 	onMount(() => void settings.load());
 
 	let { data }: PageProps = $props();
 	const user = $derived(data.user);
+
+	type Tab = 'profiel' | 'voorkeuren' | 'account';
+	const TABS = $derived(
+		(user
+			? [
+					{ id: 'profiel', name: 'Profiel' },
+					{ id: 'voorkeuren', name: 'Voorkeuren' },
+					{ id: 'account', name: 'Account' }
+				]
+			: [
+					{ id: 'voorkeuren', name: 'Voorkeuren' },
+					{ id: 'account', name: 'Account' }
+				]) as { id: Tab; name: string }[]
+	);
+	const requested = page.url.searchParams.get('tab');
+	let tab = $state<Tab>(requested === 'profiel' || requested === 'account' ? requested : 'voorkeuren');
+	// A guest has no profile tab.
+	const shown = $derived<Tab>(!user && tab === 'profiel' ? 'voorkeuren' : tab);
+	function chooseTab(t: Tab) {
+		const url = new URL(page.url);
+		url.searchParams.set('tab', t);
+		replaceState(url, page.state);
+	}
 	// Look at this device once the page is there, so the import card knows whether it has anything to offer.
 	$effect(() => {
 		if (user) guestImport.check(user.id, false);
@@ -62,33 +87,15 @@
 		<p class="text-text-muted">Wijzigingen worden meteen opgeslagen.</p>
 	</div>
 
-	<Card class="flex flex-col gap-4 lg:col-span-2">
-		<h2 class="font-heading text-lg font-semibold">Account</h2>
-		{#if user}
-			<div class="flex flex-wrap items-center justify-between gap-3">
-				<p class="min-w-0 text-text-muted">
-					Ingelogd als <strong class="text-text">{displayName(user)}</strong> (@{username(user)}). Je sets, voortgang en instellingen staan in je account.
-				</p>
-				<Button variant="secondary" class="min-w-28" disabled={auth.signingOut} onclick={() => auth.signOut()}>
-					{auth.signingOut ? 'Bezig…' : 'Uitloggen'}
-				</Button>
-			</div>
-			{#if guestImport.hasData}
-				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-					<p class="min-w-0 text-text-muted">
-						Op dit apparaat staan nog gastgegevens ({guestImport.found?.sets ?? 0} sets). Zet ze over naar je account.
-					</p>
-					<Button variant="sage" class="min-w-28" onclick={() => (guestImport.open = true)}>Overzetten</Button>
-				</div>
-			{/if}
-		{:else}
-			<div class="flex flex-wrap items-center justify-between gap-3">
-				<p class="min-w-0 text-text-muted">Je gebruikt Uiltje als gast: alles staat alleen op dit apparaat. Log in om je sets overal te hebben.</p>
-				<Button href="/login" class="min-w-28">Inloggen</Button>
-			</div>
-		{/if}
-	</Card>
+	<div class="lg:col-span-2">
+		<Segmented legend="Onderdeel van de instellingen" hideLegend options={TABS} value={shown} onchange={(t) => { tab = t; chooseTab(t); }} />
+	</div>
 
+	{#if shown === 'profiel'}
+		<div class="lg:col-span-2"><ProfileSettings /></div>
+	{:else if shown === 'account'}
+		<div class="lg:col-span-2"><AccountSettings {user} /></div>
+	{:else}
 	{#if !settings.loaded}
 		<SettingsSkeleton />
 	{:else}
@@ -127,5 +134,6 @@
 		/>
 		<OptionGroup legend="Thema" options={themeOptions} value={theme.preference} cols={3} onchange={(v) => theme.set(v)} />
 	</Card>
+	{/if}
 	{/if}
 </div>

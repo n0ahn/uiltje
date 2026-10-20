@@ -71,6 +71,13 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Profile page (`/profile`): photo upload (Storage bucket `avatars`), name, username, leaderboard privacy
 - [ ] Run `ai/sql/002_social.sql` in Supabase and try it with two real accounts
 
+## Meldingen (notification centre)
+- [x] Bell with unread badge + panel (`shell/NotificationBell.svelte`): sidebar (rail and lg), top bar on phones; closing marks as read, "Alles gelezen"
+- [x] Live: friend requests and sets sent to you; local: welcome + 3 learning facts on first visit, one fact or motivation per day, accepted friend request, streak and answer milestones, "reeks vasthouden" after 17:00, welcome back after 3+ days
+- [x] Toast when something new arrives (`state/notifications.svelte.ts`)
+- [ ] Bell on every phone page (now only on the dashboard top bar; the bottom bar has no room)
+- [ ] Push/e-mail notifications (needs a server job), notification when a friend overtakes you on the leaderboard
+
 ## Phase 7 — Polish (PLAN §8)
 - [x] Sfx + mute, confetti (gedaan bij fase 4)
 - [ ] Reduced-motion, dark mode, mobile pass, a11y over de hele app (nieuwe oefenschermen zijn wel in licht en donker, 1280px en 390px bekeken)
@@ -88,3 +95,12 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 
 ## Loading states
 - [x] Skeleton loading on every page (`ui/Skeleton.svelte`, `lib/components/skeleton/`), rule added to RULES.md
+
+## Social update (profiles)
+- [x] Profile editing moved to `/settings` (tab Profiel), settings split into tabs Profiel / Voorkeuren / Account
+- [x] Delete account (Account tab, `delete_my_account()`)
+- [x] Public/private sets (`sets.is_public`), choice in the set editor
+- [x] Profile page with statistics and sets, own (`/profile`) and friends' (`/u/[username]`); copy a friend's public set (`/openbaar/[id]`)
+- [x] Bell next to the theme toggle; fixed the notifications effect loop in `+layout.svelte`
+- [ ] Run `ai/sql/003_profiles.sql` and try it with two accounts (public/private, friend profile, stats switch, delete account)
+- [ ] Visibility chip on `/sets` cards and in the set page menu

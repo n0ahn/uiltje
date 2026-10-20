@@ -52,6 +52,22 @@ export type IncomingShare = {
 	createdAt: number;
 };
 
+/** A set on a profile. `isPublic` is only meaningful on your own profile (friends only get public sets). */
+export type ProfileSet = { id: string; title: string; subject: string; listCount: number; rowCount: number; isPublic: boolean; updatedAt: number };
+
+export type ProfileStats = { answers: number; correct: number; sessions: number; tests: number; mastered: number };
+
+/** Own profile or a friend's, as shown on the profile page. `stats` is null when the person keeps them private. */
+export type ProfileView = Person & {
+	isSelf: boolean;
+	/** ms since epoch */
+	memberSince: number;
+	stats: ProfileStats | null;
+	/** End times (ms) of recent practice sessions, newest first; empty when stats are private. */
+	activity: number[];
+	sets: ProfileSet[];
+};
+
 export interface SocialApi {
 	getMyProfile(): Promise<MyProfile>;
 	updateProfile(changes: { displayName?: string; username?: string; showOnLeaderboard?: boolean }): Promise<MyProfile>;
@@ -83,4 +99,13 @@ export interface SocialApi {
 	listIncomingShares(): Promise<IncomingShare[]>;
 	getIncomingShare(shareId: string): Promise<SharedSet | null>;
 	respondToShare(shareId: string, accept: boolean): Promise<void>;
+
+	/** Own profile or a friend's, by username. null when it does not exist or you are not friends. */
+	getProfile(username: string): Promise<ProfileView | null>;
+	getVisibility(setId: string): Promise<boolean>;
+	setVisibility(setId: string, isPublic: boolean): Promise<void>;
+	/** A public set of a friend (or your own set), ready to be copied. */
+	getPublicSet(setId: string): Promise<SharedSet | null>;
+	/** Removes the profile photo and the whole account with everything in it. Cannot be undone. */
+	deleteAccount(): Promise<void>;
 }

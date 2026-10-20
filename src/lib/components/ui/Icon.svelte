@@ -44,7 +44,10 @@
 		| 'log-in'
 		| 'log-out'
 		| 'eye'
-		| 'eye-off';
+		| 'eye-off'
+		| 'bell'
+		| 'sparkles'
+		| 'heart';
 </script>
 
 <script lang="ts">
@@ -93,6 +96,9 @@
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import EyeIcon from '@lucide/svelte/icons/eye';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
+	import BellIcon from '@lucide/svelte/icons/bell';
+	import SparklesIcon from '@lucide/svelte/icons/sparkles';
+	import HeartIcon from '@lucide/svelte/icons/heart';
 
 	// Icons come from Lucide (https://lucide.dev). Keep our own names so components do not depend on the library.
 	const ICONS = {
@@ -140,7 +146,10 @@
 		'log-in': LogInIcon,
 		'log-out': LogOutIcon,
 		eye: EyeIcon,
-		'eye-off': EyeOffIcon
+		'eye-off': EyeOffIcon,
+		bell: BellIcon,
+		sparkles: SparklesIcon,
+		heart: HeartIcon
 	};
 	// Solid icons look friendlier for "play" and "flame".
 	const FILLED = new Set<IconName>(['play', 'flame']);

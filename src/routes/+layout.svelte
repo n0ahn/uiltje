@@ -3,12 +3,14 @@
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
 	import { invalidate } from '$app/navigation';
+	import { page } from '$app/state';
 	import { isBrowser } from '@supabase/ssr';
 	import { onMount, untrack } from 'svelte';
 	import AppShell from '#lib/components/shell/AppShell.svelte';
 	import { installClickSounds } from '#lib/audio/clicks.js';
 	import GuestImportModal from '#lib/components/shell/GuestImportModal.svelte';
 	import { auth } from '#lib/state/auth.svelte.js';
+	import { notifications } from '#lib/state/notifications.svelte.js';
 	import { overview } from '#lib/state/overview.svelte.js';
 	import { profile } from '#lib/state/profile.svelte.js';
 	import { guestImport } from '#lib/state/guest-import.svelte.js';
@@ -40,12 +42,22 @@
 			overview.reset();
 			profile.reset();
 		}
-		void settings.load();
-		if (userId) {
-			guestImport.check(userId, true);
-			void profile.load();
-		}
-		else guestImport.reset();
+		untrack(() => {
+			void settings.load();
+			if (userId) {
+				guestImport.check(userId, true);
+				void profile.load();
+			} else guestImport.reset();
+			notifications.start(userId);
+		});
+	});
+
+	// Look for new notifications after every navigation (throttled inside the state).
+	$effect(() => {
+		void page.url.pathname;
+		// untrack: refresh() reads and writes notifications.items synchronously, which would make this effect
+		// depend on its own output and loop (effect_update_depth_exceeded).
+		untrack(() => void notifications.refresh());
 	});
 
 	onMount(() => {
@@ -55,6 +67,7 @@
 		});
 		return () => {
 			removeClicks();
+			notifications.stop();
 			sub.subscription.unsubscribe();
 		};
 	});

@@ -23,7 +23,13 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 
 - Login page redesigned, guest login button and owl favicon added (see NOTES "Login redesign + favicon"); not yet seen in a browser.
 
+- Meldingen (bell, live friend requests/shares, local tips and milestones) added; see NOTES "Meldingen". Not yet seen in a browser. Phones only have the bell on the dashboard.
+
+- Social update (profiles): see NOTES "Social update". `/profile` is now the own profile page, editing lives in `/settings?tab=profiel`; `/u/[username]` shows a friend; sets can be public (friends) or private. SQL `003_profiles.sql` must be run. Not yet seen in a browser.
+
 ## Next steps (in order)
+
+0. **Run `ai/sql/003_profiles.sql`**, then try with two accounts: set a set to Openbaar in the editor, open the friend's profile, copy the set, switch statistics off, delete a test account.
 
 1. **Try phase 5 for real.** Run the SQL, sign up (email + GitHub), create a set, practice, do a test, log out and in, import guest data. Fix whatever the real project shows (see the Phase 5 notes in NOTES.md).
 4. **Check phase 6 stats in the real app** (practice a few blocks, look at `/stats` and the dashboard, tune definitions in `stats/stats.ts`).

@@ -244,7 +244,7 @@
 						<ul class="flex flex-col gap-3">
 							{#each friends as person (person.id)}
 								<li>
-									<PersonRow {person}>
+									<PersonRow {person} href="/u/{person.username}">
 										{#snippet actions()}
 											<Button
 												size="sm"

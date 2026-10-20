@@ -138,11 +138,13 @@
 			<Card class="max-w-3xl">
 				<ol class="flex flex-col gap-1">
 					{#each ranked as row, i (row.id)}
-						<li class={['flex items-center gap-3 rounded-tile px-2 py-2', row.isMe && 'bg-primary-soft']}>
+						<li class={['relative flex items-center gap-3 rounded-tile px-2 py-2 hover:bg-surface-2', row.isMe && 'bg-primary-soft']}>
 							<span class="grid size-7 shrink-0 place-items-center rounded-full bg-surface-2 font-heading text-sm font-semibold">{i + 1}</span>
 							<Avatar name={row.displayName} src={row.avatarUrl} size={40} />
 							<div class="min-w-0 flex-1">
-								<p class="truncate font-semibold">{row.displayName}{row.isMe ? ' (jij)' : ''}</p>
+								<p class="truncate font-semibold">
+									<a href={row.isMe ? '/profile' : `/u/${row.username}`} class="after:absolute after:inset-0 after:content-['']">{row.displayName}{row.isMe ? ' (jij)' : ''}</a>
+								</p>
 								<p class="truncate text-sm text-text-muted">@{row.username} · {detail(row)}</p>
 							</div>
 							<span class="shrink-0 text-right font-semibold">{value(row)}</span>

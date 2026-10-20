@@ -14,10 +14,12 @@
 
 <!-- Desktop (>=1024px): full sidebar. Tablet (640-1023px): 72px icon rail with tooltips. Hidden on mobile. -->
 <aside class="fixed inset-y-0 left-0 z-30 hidden w-18 flex-col border-r border-border bg-surface sm:flex lg:w-62">
-	<a href="/" class="flex items-center justify-center gap-2 px-4 pt-5 pb-4 lg:justify-start lg:px-5" aria-label="Uiltje, naar home">
-		<Owl size={30} pose="idle" />
-		<span class="hidden font-heading text-2xl font-bold lg:inline">Uiltje</span>
-	</a>
+	<div class="flex items-center justify-center lg:justify-between lg:pr-4">
+		<a href="/" class="flex items-center justify-center gap-2 px-4 pt-5 pb-4 lg:justify-start lg:px-5" aria-label="Uiltje, naar home">
+			<Owl size={30} pose="idle" />
+			<span class="hidden font-heading text-2xl font-bold lg:inline">Uiltje</span>
+		</a>
+	</div>
 
 	<nav aria-label="Hoofdmenu" class="flex flex-col gap-1 px-3">
 		{#each NAV as item (item.href)}

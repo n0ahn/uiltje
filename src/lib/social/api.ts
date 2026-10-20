@@ -10,6 +10,7 @@ import {
 	leaderRow,
 	parseRows,
 	profileRow,
+	profileViewRow,
 	sharedRow,
 	toFound,
 	toFriendship,
@@ -17,6 +18,7 @@ import {
 	toLeaderRow,
 	toPerson,
 	toProfile,
+	toProfileView,
 	type AvatarUrl
 } from './rows';
 import type { FriendOutcome, SharedSet, SocialApi } from './types';
@@ -208,6 +210,42 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 
 		async respondToShare(shareId, accept) {
 			await rpc('respond_set_share', { p_share_id: shareId, p_accept: accept });
+		},
+
+		async getProfile(username) {
+			const name = username.trim().toLowerCase();
+			if (!USERNAME.test(name)) return null;
+			const data = await rpc('get_profile', { p_username: name }, 'Profiel laden lukt niet. Heb je 003_profiles.sql al uitgevoerd?');
+			if (data === null || data === undefined) return null;
+			const parsed = profileViewRow.safeParse(data);
+			if (!parsed.success) {
+				console.error('[social] unexpected profile', parsed.error);
+				throw new StorageError('Laden lukt niet. Probeer het later opnieuw.');
+			}
+			return toProfileView(url, parsed.data);
+		},
+
+		async getVisibility(setId) {
+			const { data, error } = await client.from('sets').select('is_public').eq('owner_id', me()).eq('id', setId).maybeSingle();
+			if (error) fail(error);
+			return data?.is_public === true;
+		},
+
+		async setVisibility(setId, isPublic) {
+			const { error } = await client.from('sets').update({ is_public: isPublic }).eq('owner_id', me()).eq('id', setId);
+			if (error) fail(error, 'Zichtbaarheid aanpassen is niet gelukt. Heb je 003_profiles.sql al uitgevoerd?');
+		},
+
+		async getPublicSet(setId) {
+			if (!/^[0-9a-f-]{36}$/i.test(setId)) return null;
+			return toShared(await rpc('get_public_set', { p_set_id: setId }));
+		},
+
+		async deleteAccount() {
+			const id = me();
+			// Best effort: the photo is the only file we store, and storage objects cannot be removed from SQL.
+			await client.storage.from(AVATAR_BUCKET).remove([`${id}/avatar.webp`]);
+			await rpc('delete_my_account', undefined, 'Account verwijderen is niet gelukt. Heb je 003_profiles.sql al uitgevoerd?');
 		}
 	};
 }
