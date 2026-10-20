@@ -10,6 +10,7 @@
 	import GuestImportModal from '#lib/components/shell/GuestImportModal.svelte';
 	import { auth } from '#lib/state/auth.svelte.js';
 	import { overview } from '#lib/state/overview.svelte.js';
+	import { profile } from '#lib/state/profile.svelte.js';
 	import { guestImport } from '#lib/state/guest-import.svelte.js';
 	import { settings } from '#lib/state/settings.svelte.js';
 	import { useStorageFor } from '#lib/storage/index.js';
@@ -37,9 +38,13 @@
 		if (!firstRun) {
 			settings.reset();
 			overview.reset();
+			profile.reset();
 		}
 		void settings.load();
-		if (userId) guestImport.check(userId, true);
+		if (userId) {
+			guestImport.check(userId, true);
+			void profile.load();
+		}
 		else guestImport.reset();
 	});
 

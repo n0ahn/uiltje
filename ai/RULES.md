@@ -23,7 +23,8 @@ Always read this file, ai/NOTES.md and the relevant ai/PLAN.md section before wo
 - Validate all set JSON with zod at every boundary (import, DB read, AI output).
 - Access storage only through `StorageAdapter`, never call localStorage/Supabase directly from components.
 - Small focused components; UI primitives in `lib/components/ui`.
-- Never store files or binary data. Supabase holds text/JSON only.
+- Never store files or binary data. Supabase holds text/JSON only. One exception, decided by the owner: the profile photo, a single small image per user in the `avatars` Storage bucket (`<user id>/avatar.webp`, shrunk to 512 px in the browser, bucket limit 2 MB, input limit 5 MB). No other uploads.
+- Friends, leaderboard and sharing live in `lib/social` (`getSocial()`), account only, through security-definer RPCs from `ai/sql/002_social.sql`. Friends never read each other's tables; the leaderboard exposes aggregates only (answers, accuracy), and a user can switch it off in their profile.
 - Secrets (Gemini key, service keys) only on the server; never in `PUBLIC_` env vars or client code.
 - Accessibility: labels on inputs, visible focus, keyboard navigable, respect `prefers-reduced-motion`.
 - Laptop first, but every screen must work on mobile.

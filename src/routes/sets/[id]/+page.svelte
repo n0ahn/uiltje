@@ -10,6 +10,7 @@
 	import MenuItem from '#lib/components/ui/MenuItem.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import Owl from '#lib/components/ui/Owl.svelte';
+	import ShareModal from '#lib/components/social/ShareModal.svelte';
 	import SetPageSkeleton from '#lib/components/skeleton/SetPageSkeleton.svelte';
 	import ProgressBar from '#lib/components/ui/ProgressBar.svelte';
 	import { rowKey } from '#lib/engine/stages.js';
@@ -25,6 +26,7 @@
 	let progress = $state<ProgressMap>({});
 	let missing = $state(false);
 	let confirmOpen = $state(false);
+	let shareOpen = $state(false);
 	let showAll = $state<Record<string, boolean>>({});
 
 	const PREVIEW = 10;
@@ -89,6 +91,7 @@
 			<Button href="/sets/{set.id}/edit" variant="secondary" size="lg"><Icon name="pencil" size={18} /> Bewerken</Button>
 			<Dropdown label="Meer acties" variant="ghost" size="lg" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={22} />{/snippet}
+				<MenuItem icon="share" onclick={() => (shareOpen = true)}>Delen…</MenuItem>
 				<MenuItem icon="download" onclick={() => set && downloadSetJson(set)}>Exporteren als JSON</MenuItem>
 				<MenuItem icon="trash" danger onclick={() => (confirmOpen = true)}>Set verwijderen</MenuItem>
 			</Dropdown>
@@ -143,6 +146,8 @@
 			{/each}
 		</div>
 	</div>
+
+	<ShareModal bind:open={shareOpen} setId={set.id} title={set.title} />
 
 	<Modal bind:open={confirmOpen} title="Set verwijderen?">
 		<p>"{set.title}" en je voortgang daarop worden verwijderd. Dit kan niet ongedaan gemaakt worden.</p>

@@ -14,7 +14,8 @@ export const NAV: NavItem[] = [
 	{ href: '/', label: 'Home', icon: 'home', prefixes: [], mobile: true },
 	{ href: '/vakken', label: 'Vakken', icon: 'book', prefixes: ['/vak/'], mobile: true },
 	{ href: '/sets', label: 'Mijn sets', icon: 'layers', prefixes: ['/sets/'], mobile: false },
-	{ href: '/friends', label: 'Vrienden', icon: 'users', prefixes: ['/leaderboard'], mobile: true },
+	{ href: '/friends', label: 'Vrienden', icon: 'users', prefixes: [], mobile: true },
+	{ href: '/leaderboard', label: 'Ranglijst', icon: 'trophy', prefixes: [], mobile: false },
 	{ href: '/stats', label: 'Statistieken', icon: 'chart', prefixes: [], mobile: true },
 	{ href: '/settings', label: 'Instellingen', icon: 'sliders', prefixes: [], mobile: true }
 ];

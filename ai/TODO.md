@@ -60,13 +60,16 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] SQL migrations: tables, RLS, indexes (`ai/sql/001_persistence.sql`, run once in the Supabase SQL editor)
 - [x] `storage/supabase.ts`, adapter switch by session (`getStorage()` forwards to local or Supabase)
 - [x] Guest → account import (dialog after login + card on `/settings`), uitloggen op `/settings`
+- [x] Login page redesigned (mint game world, owl on books, bubble title, Segmented inloggen/registreren, wachtwoord tonen), visible "Inloggen" button for guests (sidebar, mobile top bar), owl favicon
 - [ ] Run the migration on the real project and try login, save, practice, import (not testable from the scratch project)
 
 ## Phase 6 — Stats, sharing, friends (PLAN §4)
 - [x] Progress saving per row, stats page (`/stats`), streak, session log, dashboard and command palette on real data
-- [x] Placeholder "Binnenkort" page on `/friends` (+ `/leaderboard` redirect) instead of a 404
-- [ ] Share link + copy-on-open (`s/[token]`)
-- [ ] Friends by invite link, leaderboard (practice count, accuracy)
+- [x] Share link + copy-on-open (`s/[token]`), send a set to a friend (`/gedeeld/[id]`), share dialog on the set page
+- [x] Friends: search by username, requests, invite link (`/i/[code]`), `/friends`
+- [x] Leaderboard (`/leaderboard`, week/month, most practised / accuracy, opt-out) and dashboard card on real data
+- [x] Profile page (`/profile`): photo upload (Storage bucket `avatars`), name, username, leaderboard privacy
+- [ ] Run `ai/sql/002_social.sql` in Supabase and try it with two real accounts
 
 ## Phase 7 — Polish (PLAN §8)
 - [x] Sfx + mute, confetti (gedaan bij fase 4)

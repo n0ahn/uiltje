@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { auth } from '../../state/auth.svelte';
+	import Button from '../ui/Button.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import { NAV, isActive } from './nav';
@@ -35,7 +37,16 @@
 
 	<div class="mt-auto flex flex-col gap-3 p-3">
 		<div class="hidden lg:block"><SidebarCard /></div>
-		<ProfileMenu {name} {username} variant="card" />
+		{#if auth.user}
+			<ProfileMenu {name} {username} variant="card" />
+		{:else}
+			<!-- Guests get a visible login button instead of an account menu. -->
+			<Button href="/login" class="w-full px-0 lg:px-5" aria-label="Inloggen" title="Inloggen">
+				<Icon name="log-in" size={20} />
+				<span class="hidden lg:inline">Inloggen</span>
+			</Button>
+			<p class="hidden text-center text-xs text-text-muted lg:block">Log in om je sets overal te hebben.</p>
+		{/if}
 	</div>
 </aside>
 

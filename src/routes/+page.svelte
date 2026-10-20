@@ -12,7 +12,6 @@
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import CardSkeleton from '#lib/components/skeleton/CardSkeleton.svelte';
 	import RecentSetsSkeleton from '#lib/components/skeleton/RecentSetsSkeleton.svelte';
-	import { friendRanking } from '#lib/dashboard/sample.js';
 	import { overview } from '#lib/state/overview.svelte.js';
 	import { greetingFor } from '#lib/utils/greeting.js';
 	import { displayName, username as usernameOf } from '#lib/utils/user.js';
@@ -82,7 +81,7 @@
 
 	<aside class="relative flex min-w-0 flex-col gap-6 md:grid md:grid-cols-2 xl:flex xl:flex-col" aria-label="Overzicht">
 		<StreakCard loading={dash === null && !overview.failed} days={dash?.streak ?? 0} week={dash?.week ?? emptyWeek} />
-		<FriendsMini ranking={friendRanking} />
+		<FriendsMini signedIn={!!data.user} />
 		<div class="md:col-span-2 xl:col-span-1"><QuickActions /></div>
 		<Deco kind="sprig" size={44} class="absolute -right-2 -bottom-10 hidden xl:block" />
 	</aside>

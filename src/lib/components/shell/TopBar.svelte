@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { auth } from '../../state/auth.svelte';
 	import { palette } from '../../state/palette.svelte';
 	import { isApplePlatform } from '../../utils/platform';
 	import Button from '../ui/Button.svelte';
@@ -47,5 +48,13 @@
 	</Button>
 
 	<ThemeToggle />
-	<ProfileMenu {name} {username} variant="avatar" showSettings />
+	{#if !auth.user}
+		<Button href="/login" size="sm" class="sm:hidden">
+			<Icon name="log-in" size={16} />
+			Inloggen
+		</Button>
+	{/if}
+	<div class={auth.user ? '' : 'max-sm:hidden'}>
+		<ProfileMenu {name} {username} variant="avatar" showSettings />
+	</div>
 </header>
