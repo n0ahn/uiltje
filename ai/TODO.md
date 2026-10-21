@@ -30,7 +30,7 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Guest storage adapter (`storage/local.ts`)
 
 - [x] Woorden: sjabloon "Woordenlijst" (woord → vertaling, kind 'vocab')
-- [ ] Grammatica & stijl: sjablonen voor stijlfiguren, participium, coniunctivus enz.; AI-gestuurd, blijft "Binnenkort" tot fase 8-9
+- [ ] Grammatica & stijl: sjablonen voor stijlfiguren, participium, coniunctivus enz.; AI-gestuurd, blijft "Binnenkort" tot fase 9 (fase 8 is er nu)
 - [x] Naam van de derde categorie ("Grammatica & stijl") definitief maken (blijft zo)
 - [x] Dimensies herordenen in de editor
 ## Phase 4 — Practice UI (PLAN §6)
@@ -87,8 +87,11 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [ ] Reduced-motion and a11y pass over every screen in the real browser (CSS kills all motion, view transitions skipped; not yet tried on a real phone)
 
 ## Phase 8 — AI import (PLAN §9)
-- [ ] OCR step, server route, Gemini with model fallback + retry
-- [ ] Preview/edit screen (always)
+- [x] OCR step (Gemini vision, same call as structuring), server route `/api/ai/import`, Gemini with retry + model fallback (`lib/server/ai/`)
+- [x] Preview/edit screen (always): `/sets/ai`, reuses `ListEditor`, nothing saved until Opslaan; "Open in de volledige editor" hands over as concept
+- [x] Entry points: "Met AI" on `/sets`, link in the empty editor
+- [ ] Set `GEMINI_API_KEY` (+ `GEMINI_MODELS`) in `.env` and on Vercel, then try it with real photos (Latin table, Greek table, vocab list) and fix what the real model does
+- [ ] Phone check: camera input, thumbnails, review screen on 390px
 
 ## Phase 9 — Generated questions (PLAN §9)
 - [ ] Decide correctness strategy (NOTES.md open question)

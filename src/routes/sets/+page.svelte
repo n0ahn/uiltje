@@ -22,6 +22,7 @@
 
 <div class="mb-6 flex flex-wrap items-center gap-3">
 	<h1 class="min-w-0 flex-1 font-heading text-3xl font-semibold">Mijn sets</h1>
+	<Button href="/sets/ai" variant="secondary"><Icon name="sparkles" size={18} /> Met AI</Button>
 	<Button href="/sets/new?import=1" variant="secondary"><Icon name="import" size={18} /> Importeren</Button>
 	<Button href="/sets/new"><Icon name="plus" size={18} /> Nieuwe set</Button>
 </div>

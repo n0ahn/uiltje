@@ -317,7 +317,10 @@
 					</div>
 				</div>
 				{@render picker()}
-				<div><Button variant="ghost" size="sm" onclick={() => { jsonTab = 'import'; jsonOpen = true; }}><Icon name="import" size={16} /> Of importeer JSON</Button></div>
+				<div class="flex flex-wrap gap-2">
+					<Button variant="ghost" size="sm" href="/sets/ai"><Icon name="sparkles" size={16} /> Of laat AI een set maken uit een foto of tekst</Button>
+					<Button variant="ghost" size="sm" onclick={() => { jsonTab = 'import'; jsonOpen = true; }}><Icon name="import" size={16} /> Of importeer JSON</Button>
+				</div>
 			</Card>
 		{:else}
 			<div class="grid items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
