@@ -13,7 +13,7 @@
 </script>
 
 <!-- Desktop (>=1024px): full sidebar. Tablet (640-1023px): 72px icon rail with tooltips. Hidden on mobile. -->
-<aside class="fixed inset-y-0 left-0 z-30 hidden w-18 flex-col border-r border-border bg-surface sm:flex lg:w-62">
+<aside class="vt-chrome fixed inset-y-0 left-0 z-30 hidden w-18 flex-col border-r border-border bg-surface sm:flex lg:w-62">
 	<div class="flex items-center justify-center lg:justify-between lg:pr-4">
 		<a href="/" class="flex items-center justify-center gap-2 px-4 pt-5 pb-4 lg:justify-start lg:px-5" aria-label="Uiltje, naar home">
 			<Owl size={30} pose="idle" />
@@ -61,7 +61,14 @@
 		color: var(--color-primary-text);
 	}
 	/* 4px primary bar on the left edge with rounded ends */
+	.nav-item :global(svg) {
+		transition: transform 300ms var(--ease-spring);
+	}
+	.nav-item:hover :global(svg) {
+		transform: scale(1.12) rotate(-4deg);
+	}
 	.nav-item[aria-current='page']::before {
+		animation: bar-grow 420ms var(--ease-spring);
 		content: '';
 		position: absolute;
 		left: -12px;
@@ -70,5 +77,10 @@
 		width: 4px;
 		border-radius: 0 4px 4px 0;
 		background: var(--color-primary);
+	}
+	@keyframes bar-grow {
+		from {
+			transform: scaleY(0);
+		}
 	}
 </style>

@@ -81,7 +81,9 @@ export class CardSession {
 		for (const row of options.rows) this.#rows.set(row.key, row);
 		const ways: VocabWay[] = options.direction === 'both' ? ['forward', 'reverse'] : [options.direction];
 		const pairs = shuffle(
-			options.rows.flatMap((row) => (options.mode === 'dictation' ? [{ row, way: 'dictation' as const }] : ways.map((way) => ({ row, way })))),
+			options.rows.flatMap((row): { row: PracticeRow; way: CardWay }[] =>
+				options.mode === 'dictation' ? [{ row, way: 'dictation' }] : ways.map((way) => ({ row, way }))
+			),
 			rng
 		);
 		for (const { row, way } of pairs) {

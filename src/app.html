@@ -3,13 +3,24 @@
 	<head>
 		<meta charset="utf-8" />
 		<script>
-			// Apply a saved theme before first paint (no flash). Without one we follow the system.
-			try {
-				var t = localStorage.getItem('uiltje-theme');
-				if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-			} catch (e) {}
+			// Pick the theme before first paint (no flash). Always sets data-theme: a saved theme, or for
+			// "Automatisch" the light/dark theme you chose for the system mode. Keep in sync with state/theme.svelte.ts.
+			(function () {
+				var root = document.documentElement;
+				var ids = ['light', 'dark', 'salie', 'lavendel', 'zeemist', 'middernacht', 'bos'];
+				var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+				var theme = dark ? 'dark' : 'light';
+				try {
+					var saved = localStorage.getItem('uiltje-theme');
+					var pair = JSON.parse(localStorage.getItem('uiltje-theme-pair') || '{}');
+					if (ids.indexOf(saved) > -1) theme = saved;
+					else if (ids.indexOf(pair[theme]) > -1) theme = pair[theme];
+				} catch (e) {}
+				root.dataset.theme = theme;
+			})();
 		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#f7f0e1" />
 		<meta name="text-scale" content="scale" />
 		%sveltekit.head%
 	</head>

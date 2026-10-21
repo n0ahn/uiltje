@@ -12,7 +12,7 @@
 	];
 </script>
 
-<Card>
+<Card rise={4}>
 	<h3>Snelle acties</h3>
 	<ul class="mt-4 grid grid-cols-4 gap-2 xl:grid-cols-2">
 		{#each actions as action (action.label)}

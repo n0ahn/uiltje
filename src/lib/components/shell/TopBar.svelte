@@ -20,9 +20,10 @@
 	onMount(() => (apple = isApplePlatform()));
 </script>
 
+<!-- On a phone the buttons come first (right-aligned, easy to reach) and the greeting sits under them. -->
 <header class="flex flex-wrap items-start gap-3 sm:flex-nowrap sm:gap-4">
 	{#if title}
-	<div class="min-w-0 flex-1 max-sm:basis-full">
+	<div class="min-w-0 flex-1 max-sm:order-2 max-sm:basis-full">
 		<h1 class="flex items-center gap-2">
 			<span class="min-w-0 wrap-break-word">{title}</span>
 			{#if icon}<Icon name={icon} size={26} class="text-flame" />{/if}
@@ -31,8 +32,8 @@
 	</div>
 	{/if}
 
-	<!-- Actions: on a phone they sit on their own row under the title. -->
-	<div class={['flex items-center gap-3 sm:gap-4', title ? 'max-sm:ml-auto' : 'ml-auto w-full justify-end']}>
+	<!-- Actions: on a phone they sit on their own row above the title. -->
+	<div class={['flex items-center gap-3 sm:gap-4', title ? 'max-sm:order-1 max-sm:w-full max-sm:justify-end' : 'ml-auto w-full justify-end']}>
 		<!-- Looks like a search field, opens the command palette. -->
 		<button
 			type="button"

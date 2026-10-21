@@ -126,7 +126,7 @@
 		onkeydown={() => {}}
 		style:top="{position.top}px"
 		style:left="{position.left}px"
-		class="inset-auto m-0 min-w-64 animate-[pop-in_160ms_var(--ease-cozy)] rounded-card border border-border bg-surface p-2 text-text shadow-card"
+		class="inset-auto m-0 min-w-64 menu-pop rounded-card border border-border bg-surface p-2 text-text shadow-card"
 	>
 		{#if open}{@render children()}{/if}
 	</div>

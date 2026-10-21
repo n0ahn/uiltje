@@ -11,23 +11,29 @@
 		href?: string;
 		/** Default padding is 20px; turn off for custom layouts (e.g. illustrated cards). */
 		padded?: boolean;
+		/** Entrance: the card rises into place. The number is its place in the stagger (0 = first). */
+		rise?: number;
+		/** Hides a decorative card (e.g. a skeleton) from screen readers. */
+		'aria-hidden'?: 'true' | boolean;
 		class?: string;
 		children: Snippet;
 	};
 
-	let { accent = 'primary', interactive = false, href, padded = true, class: className = '', children }: Props = $props();
+	let { accent = 'primary', interactive = false, href, padded = true, rise, class: className = '', 'aria-hidden': ariaHidden, children }: Props = $props();
 	const lifts = $derived(interactive || href !== undefined);
 </script>
 
 <svelte:element
 	this={href ? 'a' : 'div'}
 	{href}
-	style={accentStyle(accent)}
+	aria-hidden={ariaHidden}
+	style={rise === undefined ? accentStyle(accent) : `${accentStyle(accent)}; --i: ${rise}`}
 	class={[
 		'rounded-card border border-border bg-surface shadow-card',
 		href && 'block',
 		padded && 'p-5',
-		lifts && 'transition duration-150 ease-cozy hover:-translate-y-0.5 hover:border-(--accent)',
+		rise !== undefined && 'rise',
+		lifts && 'lift hover:border-(--accent)',
 		className
 	]}
 >

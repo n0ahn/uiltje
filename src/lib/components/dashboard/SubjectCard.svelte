@@ -4,11 +4,11 @@
 	import Icon from '../ui/Icon.svelte';
 	import ProgressBar from '../ui/ProgressBar.svelte';
 
-	type Props = { subject: SubjectSummary };
-	let { subject }: Props = $props();
+	type Props = { subject: SubjectSummary; index?: number };
+	let { subject, index = 0 }: Props = $props();
 </script>
 
-<Card href="/vak/{subject.slug}" accent={subject.accent} class="flex min-h-44 flex-col">
+<Card href="/vak/{subject.slug}" accent={subject.accent} rise={Math.min(index, 8) + 1} class="flex min-h-44 flex-col">
 	<span
 		class="grid size-11 shrink-0 place-items-center rounded-tile bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] text-(--accent)"
 	>

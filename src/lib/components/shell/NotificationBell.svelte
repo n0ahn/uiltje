@@ -113,14 +113,21 @@
 		aria-expanded={open}
 		onclick={toggle}
 	>
-		<Icon name="bell" size={18} />
+		<!-- A new notification makes the bell ring once and the badge pop in. -->
+		{#key count}
+			<span class={['grid origin-top place-items-center', count > 0 && 'animate-[bell-ring_900ms_ease-in-out_200ms]']}>
+				<Icon name="bell" size={18} />
+			</span>
+		{/key}
 		{#if count > 0}
+			{#key count}
 			<span
-				class="absolute -top-2 -right-2 grid min-w-5 place-items-center rounded-full border-2 border-surface bg-primary-btn px-1 font-heading text-[0.7rem] leading-4 font-bold text-on-primary"
+				class="absolute -top-2 -right-2 grid min-w-5 animate-[badge-pop_420ms_var(--ease-spring)] place-items-center rounded-full border-2 border-surface bg-primary-btn px-1 font-heading text-xs leading-4 font-bold text-on-primary"
 				aria-hidden="true"
 			>
 				{count > 9 ? '9+' : count}
 			</span>
+			{/key}
 		{/if}
 	</button>
 
@@ -132,7 +139,7 @@
 		tabindex="-1"
 		style:top="{position.top}px"
 		style:left="{position.left}px"
-		class="inset-auto m-0 w-[min(24rem,calc(100vw-1rem))] animate-[pop-in_160ms_var(--ease-cozy)] rounded-card border border-border bg-surface text-text shadow-card"
+		class="inset-auto m-0 w-[min(24rem,calc(100vw-1rem))] menu-pop rounded-card border border-border bg-surface text-text shadow-card"
 	>
 		{#if open}
 			<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-3">

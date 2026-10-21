@@ -9,7 +9,7 @@
 <!-- Mobile (<640px) bottom tab bar, 64px + safe area. -->
 <nav
 	aria-label="Hoofdmenu"
-	class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
+	class="vt-chrome fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
 >
 	<ul class="grid h-16 grid-cols-5">
 		{#each tabs as item (item.href)}
@@ -18,12 +18,12 @@
 				<a
 					href={item.href}
 					aria-current={active ? 'page' : undefined}
-					class="flex h-full flex-col items-center justify-center gap-0.5 text-[0.7rem] font-semibold text-text-muted aria-[current=page]:text-primary-text"
+					class="flex h-full flex-col items-center justify-center gap-0.5 text-xs font-semibold tracking-tight text-text-muted transition-colors duration-200 active:scale-95 aria-[current=page]:text-primary-text"
 				>
 					<span
 						class={[
-							'grid h-7 w-12 place-items-center rounded-full transition-colors duration-150',
-							active && 'bg-primary-soft'
+							'grid h-8 w-14 place-items-center rounded-full transition-colors duration-200',
+							active && 'animate-[select-pop_420ms_var(--ease-cozy)] bg-primary-soft'
 						]}
 					>
 						<Icon name={item.icon} size={22} />

@@ -54,8 +54,8 @@
 						<CardSkeleton variant="subject" class="min-h-44" />
 					{/each}
 				{:else}
-					{#each dash?.subjects ?? [] as subject (subject.slug)}
-						<SubjectCard {subject} />
+					{#each dash?.subjects ?? [] as subject, i (subject.slug)}
+						<SubjectCard {subject} index={i} />
 					{/each}
 				{/if}
 				<a
@@ -67,7 +67,7 @@
 			</div>
 		</section>
 
-		<section aria-labelledby="recent-title">
+		<section aria-labelledby="recent-title" class="rise" style="--i: 4">
 			<h2 id="recent-title" class="mb-3">Recente sets</h2>
 			{#if dash === null}
 				{#if !overview.failed}<RecentSetsSkeleton />{:else}<div class="min-h-24"></div>{/if}

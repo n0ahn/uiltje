@@ -15,13 +15,6 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
 	'/settings': ['thema', 'geluid', 'profiel', 'account', 'nakijken']
 };
 
-/** Flip light/dark from what is on screen, so it also works before ThemeToggle has initialised the theme state. */
-function toggleTheme(): void {
-	const forced = document.documentElement.dataset.theme;
-	const dark = forced ? forced === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-	theme.set(dark ? 'light' : 'dark');
-}
-
 export function buildPaletteItems(overview: DashboardData | null): PaletteItem[] {
 	const items: PaletteItem[] = [];
 	const recentPractice = overview?.recent ?? null;
@@ -82,7 +75,7 @@ export function buildPaletteItems(overview: DashboardData | null): PaletteItem[]
 		{ id: 'actie:importeren', group: 'actions', title: 'Set importeren', keywords: ['json', 'plakken', 'uploaden'], icon: 'import', href: '/sets/new?import=1' },
 		{ id: 'actie:nieuw-vak', group: 'actions', title: 'Nieuw vak', subtitle: 'Een vak ontstaat bij een nieuwe set', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', href: '/sets/new' },
 		{ id: 'actie:vriend', group: 'actions', title: 'Vriend toevoegen', keywords: ['gebruikersnaam', 'uitnodigen'], icon: 'user-plus', href: '/friends' },
-		{ id: 'actie:thema', group: 'actions', title: 'Thema wisselen', subtitle: 'Licht of donker', keywords: ['dark mode', 'donker', 'licht', 'nacht'], icon: 'moon', run: toggleTheme }
+		{ id: 'actie:thema', group: 'actions', title: 'Thema wisselen', subtitle: 'Licht of donker', keywords: ['dark mode', 'donker', 'licht', 'nacht'], icon: 'moon', run: () => theme.toggle() }
 	);
 
 	return items;

@@ -2,7 +2,7 @@
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
-	import { invalidate } from '$app/navigation';
+	import { invalidate, onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { isBrowser } from '@supabase/ssr';
 	import { onMount, untrack } from 'svelte';
@@ -49,6 +49,19 @@
 				void profile.load();
 			} else guestImport.reset();
 			notifications.start(userId);
+		});
+	});
+
+	// Page changes glide with the View Transitions API (CSS in layout.css): the content fades up while the sidebar
+	// and tab bar stay put. Skipped without browser support, with reduced motion, and when only the query changes.
+	onNavigate((navigation) => {
+		if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		if (navigation.from?.url.pathname === navigation.to?.url.pathname) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
 		});
 	});
 

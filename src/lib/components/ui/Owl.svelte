@@ -4,8 +4,9 @@
 
 <script lang="ts">
 	// Uiltje, the mascot (DESIGN.md §4). Flat SVG, outline like the chunky buttons.
-	type Props = { pose?: OwlPose; size?: number; class?: string; label?: string };
-	let { pose = 'idle', size = 64, class: className = '', label }: Props = $props();
+	/** `bob`: floats up and down slowly (for the big owl on empty screens). */
+	type Props = { pose?: OwlPose; size?: number; class?: string; label?: string; bob?: boolean };
+	let { pose = 'idle', size = 64, class: className = '', label, bob = false }: Props = $props();
 
 	const closedEyes = $derived(pose === 'happy' || pose === 'cheer' || pose === 'sleepy');
 	// Pupil offset: thinking looks up-left.
@@ -17,7 +18,7 @@
 	width={size}
 	height={size * 1.1}
 	viewBox="0 0 100 110"
-	class={['shrink-0', className]}
+	class={['shrink-0', bob && 'animate-[bob_4s_ease-in-out_infinite]', className]}
 	role={label ? 'img' : undefined}
 	aria-label={label}
 	aria-hidden={label ? undefined : 'true'}

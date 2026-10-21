@@ -80,7 +80,11 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 
 ## Phase 7 — Polish (PLAN §8)
 - [x] Sfx + mute, confetti (gedaan bij fase 4)
-- [ ] Reduced-motion, dark mode, mobile pass, a11y over de hele app (nieuwe oefenschermen zijn wel in licht en donker, 1280px en 390px bekeken)
+- [x] Mobile pass: top bar buttons above the greeting, phone type scale (text-xs/sm grow), 42px touch targets, 16px inputs, theme-color meta
+- [x] Themes: Crème, Salie, Lavendel, Zeemist (light), Cacao (improved dark), Middernacht, Bos (dark); picker in Instellingen > Uiterlijk; toggle goes to your last light/dark pick
+- [x] Settings: two column stacks, no gap under short cards
+- [x] Animations: page transitions, staggered rise, springy buttons/switches/segmented pill, modal/sheet/menu in and out, toast, bell ring, count-up, bars and rings that grow
+- [ ] Reduced-motion and a11y pass over every screen in the real browser (CSS kills all motion, view transitions skipped; not yet tried on a real phone)
 
 ## Phase 8 — AI import (PLAN §9)
 - [ ] OCR step, server route, Gemini with model fallback + retry

@@ -29,7 +29,7 @@
 	const top = $derived((rows ?? []).filter((r) => r.practiced > 0).slice(0, 3));
 </script>
 
-<Card>
+<Card rise={3}>
 	<h3 class="flex items-center gap-2">
 		<Icon name="trophy" size={20} class="text-wheat" /> Vrienden deze week
 	</h3>

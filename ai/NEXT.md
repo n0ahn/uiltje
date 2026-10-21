@@ -14,7 +14,7 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 - Test system: every form once, optional time limit, optional fixed number of forms, grade (10 x score, passed from 5,5 = 55%), results stored locally (last 50).
 - `/vakken`, `/vak/[subject]` and `/settings` exist. Settings (level, practice defaults, grade, sound) go through `StorageAdapter`.
 - Phase 5: `ai/sql/001_persistence.sql` (run it once in the Supabase SQL editor), `storage/supabase.ts` (full `StorageAdapter`), `getStorage()` switches on the session (guest = localStorage), guest → account import (dialog after login, card on `/settings`), logout on `/settings`. Verified with svelte-check, an in-memory fake client and the SQL in PGlite; NOT yet run against the real project and real browser.
-- Phases 6 to 10 are not started. Phase 7 is partly done (sfx, mute, confetti).
+- Phase 7 is mostly done (sfx, confetti, themes, mobile pass, animations; NOTES "Phase 7 polish"). Phases 8 to 10 are not started.
 - Verified in a scratch SvelteKit 3 project (`svelte-check` clean, build ok, engine scenarios, browser checks incl. vocab learn/test and the set page). Not yet run in the real repo.
 - Dashboard (hero, subjects, recent sets, streak) and `/stats` use real data (session log, see NOTES Phase 6). The friends card shows the real week top 3.
 - Phase 6 social is in code (NOTES "Phase 6 social"): `/profile` with photo upload, `/friends`, `/leaderboard`, `/i/[code]`, `/s/[token]`, `/gedeeld/[id]`, share dialog on `/sets/[id]`. SQL: `ai/sql/002_social.sql` (run once after 001). Verified in PGlite (RLS, RPCs, opt-out, share on/off); NOT yet run against the real project or in a browser.
@@ -34,7 +34,7 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 1. **Try phase 5 for real.** Run the SQL, sign up (email + GitHub), create a set, practice, do a test, log out and in, import guest data. Fix whatever the real project shows (see the Phase 5 notes in NOTES.md).
 4. **Check phase 6 stats in the real app** (practice a few blocks, look at `/stats` and the dashboard, tune definitions in `stats/stats.ts`).
 5. **Try phase 6 social for real.** Run `002_social.sql`, make two accounts, upload a photo, add each other (search and invite link), practise, check `/leaderboard`, share a set by link and to a friend, switch the leaderboard off. Check the `avatars` bucket is public in the dashboard.
-6. **Phase 7 polish.** Reduced-motion, dark mode, mobile pass and a11y over the whole app (the practice screens are already checked in light and dark at 1280px and 390px).
+6. **Phase 7 rest.** Look at the new themes, animations and phone layout on a real phone; practice screens, editor and set page still need a phone pass with the new type scale. Tweak `--text-sm` or the spring easing if something feels off.
 7. **Phase 8 AI import.** OCR step, server route for Gemini with retry and model fallback, preview/edit screen before save. The API key stays on the server.
 8. **Phase 9 generated questions.** Decide the correctness strategy first (see Open questions), then templates (Stijlfiguren, Grammatica) and background generation.
 9.  **Vocab polish.** Try the learn flow with real classmates' sets and tune `roundSize`, spacing and distractor choice in `engine/vocab.ts`. The Meerkeuze, Flashcards, Dictee, Spelling and Hints modes exist now (NOTES "Practice modes"); try them and tune. Vocab rows in the same list with several translations are accepted in any of them.

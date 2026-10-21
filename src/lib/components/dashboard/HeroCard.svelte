@@ -14,7 +14,7 @@
 	let { recent, loading = false }: Props = $props();
 </script>
 
-<Card padded={false} class="relative min-h-55 overflow-hidden">
+<Card padded={false} rise={0} class="relative min-h-55 overflow-hidden">
 	{#if recent}
 		<div class="relative z-10 flex min-h-55 flex-col justify-center gap-3 p-6 sm:max-w-[62%] sm:p-8">
 			<p class="text-sm font-semibold text-text-muted">Verder waar je was</p>
@@ -44,7 +44,7 @@
 		</div>
 	{:else}
 		<div class="flex min-h-55 flex-col items-center justify-center gap-3 p-8 text-center">
-			<Owl pose="sleepy" size={96} />
+			<Owl pose="sleepy" size={96} bob />
 			<p class="font-heading text-lg font-medium">Je hebt nog niets geoefend.</p>
 			<Button href="/sets/new">Maak je eerste set</Button>
 		</div>

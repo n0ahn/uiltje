@@ -42,7 +42,8 @@
 			stroke-linecap="round"
 			stroke-dasharray={circumference}
 			stroke-dashoffset={circumference * (1 - clamped)}
-			class="stroke-(--accent) transition-[stroke-dashoffset] duration-400 ease-cozy"
+			style:--circ={circumference}
+			class="ring-arc stroke-(--accent)"
 		/>
 	</svg>
 	{#if children}

@@ -29,13 +29,13 @@
 		aria-checked={checked}
 		aria-labelledby={labelId}
 		aria-describedby={description ? descId : undefined}
-		class={['relative h-8 w-14 shrink-0 rounded-full border-2 border-ink transition-colors duration-150', checked ? 'bg-sage' : 'bg-surface-2']}
+		class={['group relative h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-ink transition-colors duration-300', checked ? 'bg-sage' : 'bg-surface-2']}
 		onclick={flip}
 	>
 		<span
 			class={[
-				'absolute top-0.5 left-0.5 size-6 rounded-full border-2 border-ink bg-surface transition-transform duration-150 ease-cozy motion-reduce:transition-none',
-				checked && 'translate-x-6'
+				'absolute top-0.5 left-0.5 size-6 rounded-full border-2 border-ink bg-surface shadow-[0_2px_0_0_var(--color-cream-edge)] transition-[transform,width] duration-400 ease-spring group-active:w-7 motion-reduce:transition-none',
+				checked && 'translate-x-6 group-active:translate-x-5'
 			]}
 		></span>
 	</button>

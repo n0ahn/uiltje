@@ -5,6 +5,7 @@
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
 	import Confetti from '../ui/Confetti.svelte';
+	import CountUp from '../ui/CountUp.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import Progressring from '../ui/Progressring.svelte';
 
@@ -40,17 +41,17 @@
 {#if celebrate}<Confetti />{/if}
 
 <div class="mx-auto flex w-full max-w-3xl flex-col items-center gap-5 py-8 text-center">
-	<Owl pose={celebrate ? 'cheer' : 'happy'} size={96} />
+	<Owl pose={celebrate ? 'cheer' : 'happy'} size={96} bob={celebrate} />
 
 	{#if mode === 'test' && test}
 		<Progressring value={test.score} size={140} stroke={12} label="Score {percent} procent" accent={passed ? 'sage' : 'primary'}>
 			{#if showGrade}
 				<span class="flex flex-col leading-tight">
 					<span class="font-heading text-3xl font-semibold">{formatGrade(grade)}</span>
-					<span class="text-sm text-text-muted">{percent}%</span>
+					<span class="text-sm text-text-muted"><CountUp value={percent} />%</span>
 				</span>
 			{:else}
-				<span class="font-heading text-3xl font-semibold">{percent}%</span>
+				<span class="font-heading text-3xl font-semibold"><CountUp value={percent} />%</span>
 			{/if}
 		</Progressring>
 		<div>

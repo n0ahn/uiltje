@@ -24,8 +24,6 @@
 	style={accentStyle(accent)}
 	class={['h-2.5 w-full overflow-hidden rounded-full bg-surface-2', className]}
 >
-	<div
-		class="h-full rounded-full bg-(--accent) shadow-[inset_0_1px_0_rgb(255_255_255/0.35)] transition-[width] duration-400 ease-cozy"
-		style:width="{pct}%"
-	></div>
+	<!-- .grow-x (layout.css): grows from empty when it appears, and glides when the value changes -->
+	<div class="grow-x h-full rounded-full bg-(--accent) shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]" style:--w="{pct}%"></div>
 </div>
