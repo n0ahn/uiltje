@@ -251,9 +251,12 @@ class NotificationState {
 		if (fresh.length === 0) return;
 		if (fresh.length === 1) {
 			const n = fresh[0]!;
-			toasts.show(n.kind === 'welcome' ? 'Welkom bij Uiltje' : n.title, 4500);
+			toasts.show(n.kind === 'welcome' ? 'Welkom bij Uiltje' : n.title, 4500, n.href);
 		} else {
-			toasts.show(`${fresh.length} nieuwe meldingen`, 4500);
+			// Several at once: if they all go to the same page (e.g. friend requests), the toast links there.
+			const hrefs = new Set(fresh.map((n) => n.href));
+			const [only] = hrefs;
+			toasts.show(`${fresh.length} nieuwe meldingen`, 4500, hrefs.size === 1 ? only : undefined);
 		}
 	}
 }

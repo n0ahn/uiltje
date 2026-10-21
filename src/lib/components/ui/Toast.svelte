@@ -12,9 +12,16 @@
 	class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex flex-col items-center gap-2 px-4 max-sm:bottom-[calc(64px+env(safe-area-inset-bottom)+12px)]"
 >
 	{#each toasts.items as toast (toast.id)}
-		<div class="toast pointer-events-auto" animate:flip={{ duration: 260 }} out:fly={{ y: 16, duration: 220 }}>
+		<svelte:element
+			this={toast.href ? 'a' : 'div'}
+			href={toast.href}
+			class={['toast pointer-events-auto', toast.href && 'cursor-pointer underline-offset-2 hover:underline']}
+			onclick={toast.href ? () => toasts.dismiss(toast.id) : undefined}
+			animate:flip={{ duration: 260 }}
+			out:fly={{ y: 16, duration: 220 }}
+		>
 			<Owl size={24} pose="happy" />
 			<span>{toast.text}</span>
-		</div>
+		</svelte:element>
 	{/each}
 </div>
