@@ -109,3 +109,7 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [ ] Run `ai/sql/003_profiles.sql` and try it with two accounts (public/private, friend profile, stats switch, delete account)
 - [ ] Visibility chip on `/sets` cards and in the set page menu
 - [x] Top bar (search, meldingen, thema, profiel) on every page via `AppShell`
+
+## Greek keyboard
+- [x] Per-set keyboard setting (schema v3), `toGreek`, `greekKeyboard` action, editor + practice inputs
+- [ ] Try it in the browser (editor, learn, test, cards); decide if pasted text / reverse vocab direction need another rule

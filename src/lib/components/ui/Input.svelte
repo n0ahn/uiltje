@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
+	import { greekKeyboard } from '../../utils/keyboard';
+	import type { Keyboard } from '../../schema/types';
 	import Icon from './Icon.svelte';
 
 	type Props = Omit<HTMLInputAttributes, 'class' | 'value'> & {
@@ -11,6 +13,8 @@
 		answer?: boolean;
 		/** Hide the label visually (it stays available to screen readers). */
 		hideLabel?: boolean;
+		/** 'greek' turns typed Latin letters into Greek ones. */
+		keyboard?: Keyboard;
 		class?: string;
 	};
 
@@ -20,6 +24,7 @@
 		state = 'idle',
 		answer = false,
 		hideLabel = false,
+		keyboard = 'default',
 		class: className = '',
 		id,
 		...rest
@@ -45,6 +50,7 @@
 			data-state={state}
 			data-answer={answer || undefined}
 			aria-invalid={state === 'wrong' ? 'true' : undefined}
+			use:greekKeyboard={keyboard === 'greek'}
 			bind:value
 		/>
 		{#if state === 'correct'}

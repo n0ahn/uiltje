@@ -1,7 +1,7 @@
 // Set/list/row types (PLAN §3). Pure TS: no Svelte, DOM or Supabase imports.
 // Hand-written on purpose; zod.ts asserts at compile time that its schema matches these types.
 
-export const SCHEMA_VERSION = 2 as const;
+export const SCHEMA_VERSION = 3 as const;
 
 export const LEVELS = ['vmbo-b', 'vmbo-k', 'vmbo-gt', 'havo', 'vwo', 'gym'] as const;
 export type Level = (typeof LEVELS)[number];
@@ -14,16 +14,22 @@ export type ListTemplate = (typeof LIST_TEMPLATES)[number];
 export const LIST_KINDS = ['declension', 'conjugation', 'vocab', 'custom'] as const;
 export type ListKind = (typeof LIST_KINDS)[number];
 
+/** Keyboards a set can use for typing. 'greek' turns typed Latin letters into Greek ones (engine/greek.ts). */
+export const KEYBOARDS = ['default', 'greek'] as const;
+export type Keyboard = (typeof KEYBOARDS)[number];
+
 export type SetSettings = {
 	strictAccents: boolean;
 	strictMacrons: boolean;
 	caseSensitive: boolean;
+	keyboard: Keyboard;
 };
 
 export const DEFAULT_SETTINGS: Readonly<SetSettings> = {
 	strictAccents: true,
 	strictMacrons: false,
-	caseSensitive: false
+	caseSensitive: false,
+	keyboard: 'default'
 };
 
 export type StudyRow = {

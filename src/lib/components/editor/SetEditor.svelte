@@ -54,6 +54,11 @@
 	let visibility = $state<'private' | 'public'>('private');
 	let appliedVisibility: 'private' | 'public' = 'private'; // what is stored
 
+	const KEYBOARDS = [
+		{ id: 'default', name: 'Normaal', text: 'Je typt met je eigen toetsenbord.' },
+		{ id: 'greek', name: 'Grieks', text: 'Latijnse letters worden meteen Griekse letters (a = α, w = ω, h = η, q = θ, c = χ, y = ψ). Accenten typ je na de letter: \' = ά, ` = ὰ, = = ᾶ, ) = ἀ, ( = ἁ, | = ᾳ.' }
+	] as const;
+
 	let pickerOpen = $state(false);
 	let pasteOpen = $state(false);
 	let pasteListId = $state('');
@@ -97,6 +102,11 @@
 			jsonOpen = true;
 		}
 	}
+
+	// Greek has no ablative: remove the empty ablative rows of declensions as soon as the set is Greek.
+	$effect(() => {
+		if (editor?.isGreek) editor.dropAblative();
+	});
 
 	// Autosave: 2 seconds after the last change. A complete set is saved; an incomplete one is kept as concept.
 	let timer: ReturnType<typeof setTimeout>;
@@ -278,6 +288,9 @@
 					<datalist id="folders">{#each folders as f (f)}<option value={f}></option>{/each}</datalist>
 				</label>
 			</div>
+			<div class="max-w-md">
+				<Segmented legend="Toetsenbord" options={KEYBOARDS} bind:value={editor.set.settings.keyboard} />
+			</div>
 			{#if auth.user}
 				<div class="max-w-md">
 					<Segmented legend="Zichtbaarheid" options={VISIBILITY} bind:value={visibility} onchange={onVisibility} />
@@ -333,7 +346,7 @@
 
 				{#each editor.set.lists as list, i (list.id)}
 					{#if list.id === active?.id}
-						<ListEditor {editor} bind:list={editor.set.lists[i]} onpaste={() => openPaste(list.id)} />
+						<ListEditor {editor} keyboard={editor.set.settings.keyboard} bind:list={editor.set.lists[i]} onpaste={() => openPaste(list.id)} />
 					{/if}
 				{/each}
 			</div>

@@ -3,15 +3,16 @@
 	import { KIND_LABELS } from '../../editor/templates';
 	import type { EditorState } from '../../editor/state.svelte';
 	import type { DraftList } from '../../editor/types';
-	import { LIST_KINDS } from '../../schema/types';
+	import { LIST_KINDS, type Keyboard } from '../../schema/types';
+	import { greekKeyboard } from '../../utils/keyboard';
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
 	import Dropdown from '../ui/Dropdown.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import MenuItem from '../ui/MenuItem.svelte';
 
-	type Props = { editor: EditorState; list: DraftList; onpaste: () => void };
-	let { editor, list = $bindable(), onpaste }: Props = $props();
+	type Props = { editor: EditorState; list: DraftList; keyboard: Keyboard; onpaste: () => void };
+	let { editor, list = $bindable(), keyboard, onpaste }: Props = $props();
 
 	// Tags and dimensions are for rijtjes only and stay hidden until asked for.
 	let advanced = $state(false);
@@ -189,6 +190,7 @@
 				<input
 					class="input"
 					data-field="prompt"
+					use:greekKeyboard={keyboard === 'greek'}
 					bind:value={row.prompt}
 					onkeydown={(e) => onCellKeydown(e, row.id)}
 					aria-label="{list.columns.prompt}, rij {index + 1}"
@@ -201,6 +203,7 @@
 							<input
 								class="input"
 								data-field="answer"
+								use:greekKeyboard={keyboard === 'greek'}
 								bind:value={row.answers[a]}
 								onkeydown={(e) => onCellKeydown(e, row.id)}
 								aria-label={a === 0 ? `${list.columns.answer}, rij ${index + 1}` : `Variant ${a}, rij ${index + 1}`}

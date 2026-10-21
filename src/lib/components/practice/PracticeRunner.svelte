@@ -42,6 +42,7 @@
 	const allRows = selectRows(sets, config.selection, { strictness: config.strictness, onlyRowKeys: config.onlyRowKeys });
 	// svelte-ignore state_referenced_locally
 	const rows = config.mode === 'test' ? limitRows(allRows, config.questionCount) : allRows;
+	const rowByKey = new Map(rows.map((r) => [r.key, r]));
 	// svelte-ignore state_referenced_locally
 	const session = new BlockSession({ rows, mode: config.mode, direction: config.direction, stepBack: config.stepBack, flat: config.onlyRowKeys !== null });
 	// svelte-ignore state_referenced_locally
@@ -336,6 +337,7 @@
 				<BlockBoard
 					blockId={view.block.id}
 					cells={view.cells}
+					keyboardFor={(key) => rowByKey.get(key)?.settings.keyboard ?? 'default'}
 					bind:inputs
 					{statuses}
 					{hints}

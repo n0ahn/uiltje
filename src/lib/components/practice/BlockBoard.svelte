@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import type { Cell, CellStatus } from '../../engine/blocks';
+	import type { Keyboard } from '../../schema/types';
 	import Input from '../ui/Input.svelte';
 
 	type Props = {
 		blockId: string;
 		cells: Cell[];
+		/** Keyboard of the set a row belongs to. */
+		keyboardFor: (rowKey: string) => Keyboard;
 		inputs: Record<string, string>;
 		statuses: Record<string, CellStatus>;
 		/** Hint text per row (learn mode). */
@@ -16,7 +19,7 @@
 		focused?: string | null;
 		onsubmit: () => void;
 	};
-	let { blockId, cells, inputs = $bindable(), statuses, hints, feedback, focused = $bindable(null), onsubmit }: Props = $props();
+	let { blockId, cells, keyboardFor, inputs = $bindable(), statuses, hints, feedback, focused = $bindable(null), onsubmit }: Props = $props();
 
 	let root: HTMLElement | undefined = $state();
 
@@ -57,6 +60,7 @@
 					label={cell.way === 'forward' ? `Vorm bij ${cell.shown}` : `Bepaling van ${cell.shown}`}
 					hideLabel
 					answer
+					keyboard={cell.way === 'forward' ? keyboardFor(cell.rowKey) : 'default'}
 					data-key={cell.rowKey}
 					value={inputs[cell.rowKey] ?? ''}
 					oninput={(e) => (inputs[cell.rowKey] = e.currentTarget.value)}

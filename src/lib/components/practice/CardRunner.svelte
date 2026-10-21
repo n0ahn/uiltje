@@ -18,6 +18,7 @@
 	import Icon from '../ui/Icon.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import ProgressBar from '../ui/ProgressBar.svelte';
+	import { greekKeyboard } from '../../utils/keyboard';
 	import { CARD_MODE_INFO, type CardConfig } from './config';
 
 	// Flashcards, multiple choice, dictation, spelling and hints: one pass over the selected rows (engine/cards.ts).
@@ -55,6 +56,7 @@
 	let hint = $state('');
 	let flipped = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state();
+	const greek = $derived(rowByKey.get(v.item?.rowKey ?? '')?.settings.keyboard === 'greek');
 	let saving: Promise<void> = Promise.resolve();
 	let finalized = false;
 
@@ -277,7 +279,7 @@
 
 				{#if !v.j}
 					<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); check(); }}>
-						<input bind:this={inputEl} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
+						<input bind:this={inputEl} use:greekKeyboard={greek} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
 						<p class="min-h-7 font-heading text-lg tracking-widest" aria-live="polite">{hint}</p>
 						<div class="flex flex-wrap items-center gap-3">
 							<Button size="lg" class="min-w-44" type="submit" disabled={input.trim() === ''}>Nakijken</Button>

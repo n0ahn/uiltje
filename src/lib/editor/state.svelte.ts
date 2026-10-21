@@ -37,8 +37,20 @@ export class EditorState {
 		return this.set.lists.find((l) => l.id === listId);
 	}
 
+	/** A Greek set: subject "Grieks"/"Greek" or the Greek keyboard. */
+	isGreek = $derived(this.set.settings.keyboard === 'greek' || /^(grieks|greek)$/i.test(this.set.subject.trim()));
+
+	/** Greek has no ablative: drops the empty ablative rows of declension lists (rows with an answer are kept). */
+	dropAblative(): void {
+		for (const list of this.set.lists) {
+			if (list.kind !== 'declension') continue;
+			const keep = list.rows.filter((r) => r.tags.case !== 'abl' || r.answers.some((a) => a.trim() !== ''));
+			if (keep.length !== list.rows.length) list.rows = keep;
+		}
+	}
+
 	addList(template: TemplateId): string {
-		const list = createList(template);
+		const list = createList(template, this.isGreek);
 		this.set.lists.push(list);
 		return list.id;
 	}

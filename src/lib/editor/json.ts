@@ -17,7 +17,8 @@ const FIELDS: Record<string, string> = {
 	rows: 'rijen',
 	template: 'sjabloon',
 	kind: 'soort',
-	group: 'groep'
+	group: 'groep',
+	keyboard: 'toetsenbord'
 };
 
 function translateMessage(message: string): string {

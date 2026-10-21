@@ -23,7 +23,7 @@ export const TEMPLATE_CATEGORIES: readonly TemplateCategory[] = [
 		name: 'Rijtjes',
 		description: 'Vormen die je uit je hoofd leert, met stapsgewijs oefenen.',
 		templates: [
-			{ id: 'declension', name: 'Declinatie', description: 'Enkelvoud en meervoud, nominativus t/m ablativus.', example: 'ev nom → mensa' },
+			{ id: 'declension', name: 'Declinatie', description: 'Enkelvoud en meervoud, nominativus t/m ablativus (bij Grieks zonder ablativus).', example: 'ev nom → mensa' },
 			{ id: 'conjugation', name: 'Vervoeging', description: 'Eén tijd: 1e, 2e en 3e persoon, enkelvoud en meervoud.', example: '1 ev → amavi' },
 			{ id: 'custom', name: 'Eigen rijtje', description: 'Een rijtje naar eigen idee: zelf rijen en tags bepalen.', example: 'nom ev → puella' }
 		],
@@ -61,11 +61,12 @@ export function emptyRow(tags: Record<string, string> = {}, prompt = ''): DraftR
 	return { id: newId(), prompt, answers: [''], tags };
 }
 
-export function createList(template: TemplateId): DraftList {
+/** Greek has no ablative: declension templates for Greek sets leave it out. */
+export function createList(template: TemplateId, greek = false): DraftList {
 	const base = { id: newId(), template: 'table' as const, group: '' };
 
 	if (template === 'declension') {
-		const rows = NUMBERS.flatMap((n) => CASES.map((c) => emptyRow({ number: n.tag, case: c }, `${n.label} ${c}`)));
+		const rows = NUMBERS.flatMap((n) => CASES.filter((c) => !(greek && c === 'abl')).map((c) => emptyRow({ number: n.tag, case: c }, `${n.label} ${c}`)));
 		return {
 			...base,
 			kind: 'declension',

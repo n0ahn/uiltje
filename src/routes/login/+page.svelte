@@ -69,16 +69,15 @@
 				busy = false;
 				return;
 			}
-			const { error: err } = await data.supabase.auth.signUp({
+			// E-mail confirmation is switched off in Supabase, so signUp returns a session: go straight in.
+			const { data: signedUp, error: err } = await data.supabase.auth.signUp({
 				email,
 				password,
-				options: {
-					emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-					data: { display_name: displayName.trim(), username: name }
-				}
+				options: { data: { display_name: displayName.trim(), username: name } }
 			});
 			if (err) error = 'Registreren mislukt. Gebruik een geldig e-mailadres en minimaal 6 tekens.';
-			else message = 'Check je e-mail en klik op de link om je account te bevestigen.';
+			else if (signedUp.session) await goto(next, { invalidateAll: true });
+			else error = 'Dit e-mailadres heeft al een account. Log in.';
 		}
 		busy = false;
 	}
@@ -183,7 +182,7 @@
 				<Button type="submit" class="w-full" disabled={busy}>
 					{busy ? 'Bezig…' : mode === 'in' ? 'Inloggen' : 'Account maken'}
 				</Button>
-				<!-- Reserved slot: an error or the confirmation notice appears here without moving the buttons. -->
+				<!-- Reserved slot: an error or a notice appears here without moving the buttons. -->
 				<div class="min-h-11">
 					{#if message}
 						<p role="status" class="flex items-center gap-2.5 rounded-input border-2 border-sage bg-sage-soft py-1 pr-3 pl-2 text-sm font-semibold text-text">

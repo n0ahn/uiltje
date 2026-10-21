@@ -1,7 +1,7 @@
 // Strict zod schema for sets (PLAN §3). Deliberately free of transforms/defaults so it can be
 // turned into JSON Schema for Gemini later. Leniency (defaults, unknown template/kind) lives in migrate.ts.
 import { z } from 'zod';
-import { LIST_KINDS, LIST_TEMPLATES, SCHEMA_VERSION } from './types';
+import { KEYBOARDS, LIST_KINDS, LIST_TEMPLATES, SCHEMA_VERSION } from './types';
 import type { SetSettings, StudyList, StudyRow, StudySet } from './types';
 
 const id = z.string().min(1);
@@ -9,7 +9,8 @@ const id = z.string().min(1);
 export const SetSettingsSchema = z.object({
 	strictAccents: z.boolean(),
 	strictMacrons: z.boolean(),
-	caseSensitive: z.boolean()
+	caseSensitive: z.boolean(),
+	keyboard: z.enum(KEYBOARDS)
 });
 
 export const StudyRowSchema = z.object({

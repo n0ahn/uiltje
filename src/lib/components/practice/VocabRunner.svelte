@@ -20,6 +20,7 @@
 	import Icon from '../ui/Icon.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import ProgressBar from '../ui/ProgressBar.svelte';
+	import { greekKeyboard } from '../../utils/keyboard';
 	import type { PracticeConfig } from './config';
 	import PracticeResult from './PracticeResult.svelte';
 
@@ -92,6 +93,9 @@
 	let saving: Promise<void> = Promise.resolve();
 	let finalized = false;
 	let inputEl: HTMLInputElement | undefined = $state();
+	// Greek keyboard: follows the set of the word that is being asked.
+	const keyboardByRow = new Map(rows.map((r) => [r.key, r.settings.keyboard]));
+	const greek = $derived(keyboardByRow.get((lv?.q ?? tv?.q)?.rowKey ?? '') === 'greek');
 
 	// Fresh fields for every new question (and focus the field).
 	const questionId = $derived(lv?.q ? (lv.q.step === 'intro' ? `intro${lv.q.round}` : `${lv.q.step}:${lv.q.rowKey}:${lv.p.learned}:${lv.p.round}`) : tv ? `t${tv.index}` : '');
@@ -411,7 +415,7 @@
 
 				{#if !lv.j}
 					<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); check(); }}>
-						<input bind:this={inputEl} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
+						<input bind:this={inputEl} use:greekKeyboard={greek} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
 						{#if hint}<p class="font-heading text-lg tracking-widest" aria-live="polite">{hint}</p>{/if}
 						<div class="flex flex-wrap items-center gap-3">
 							<Button size="lg" class="min-w-44" type="submit" disabled={input.trim() === ''}>Nakijken</Button>
@@ -438,7 +442,7 @@
 						<label class="flex flex-col gap-1.5">
 							<span class="text-sm text-text-muted">Typ het juiste antwoord over om verder te gaan</span>
 							<!-- svelte-ignore a11y_autofocus -->
-							<input bind:value={retype} class="input" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" aria-invalid={retypeWrong} />
+							<input use:greekKeyboard={greek} bind:value={retype} class="input" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" aria-invalid={retypeWrong} />
 						</label>
 						{#if retypeWrong}<p class="text-sm text-rose-edge" role="alert">Nog niet helemaal. Kijk goed naar het antwoord hierboven.</p>{/if}
 						<div><Button size="lg" class="min-w-44" type="submit">Verder</Button></div>
@@ -451,7 +455,7 @@
 				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way)}</p>
 				<p class="font-heading text-3xl font-semibold">{q.shown}</p>
 				<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); submitTest(); }}>
-					<input bind:this={inputEl} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
+					<input bind:this={inputEl} use:greekKeyboard={greek} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
 					<div class="flex flex-wrap items-center gap-3">
 						<Button size="lg" class="min-w-44" type="submit">{tv.index + 1 === tv.total ? 'Inleveren' : 'Volgende'}</Button>
 						<p class="text-sm text-text-muted">Leeg laten telt als fout.</p>

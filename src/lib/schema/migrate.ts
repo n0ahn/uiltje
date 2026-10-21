@@ -1,6 +1,6 @@
 // Entry point for turning untrusted JSON (import, DB read, AI output) into a StudySet (RULES: validate at every boundary).
 // Steps: version check -> migrations -> lenient normalization (defaults, unknown template/kind degrade) -> strict zod parse.
-import { DEFAULT_SETTINGS, LIST_KINDS, LIST_TEMPLATES, SCHEMA_VERSION } from './types';
+import { DEFAULT_SETTINGS, KEYBOARDS, LIST_KINDS, LIST_TEMPLATES, SCHEMA_VERSION } from './types';
 import type { StudySet } from './types';
 import { StudySetSchema } from './zod';
 
@@ -18,7 +18,9 @@ const migrations: Record<number, (data: Json) => Json> = {
 	1: (data) => {
 		const { level: _level, ...rest } = data;
 		return rest;
-	}
+	},
+	// v2 -> v3: sets got a keyboard setting ('default'; filled in by normalizeSet).
+	2: (data) => data
 };
 
 function normalizeRow(raw: unknown): unknown {
@@ -49,8 +51,9 @@ function normalizeSet(data: Json): Json {
 	const given = isRecord(data.settings) ? data.settings : {};
 	const settings: Json = { ...DEFAULT_SETTINGS };
 	for (const key of Object.keys(DEFAULT_SETTINGS)) {
-		if (typeof given[key] === 'boolean') settings[key] = given[key];
+		if (typeof DEFAULT_SETTINGS[key as keyof typeof DEFAULT_SETTINGS] === 'boolean' && typeof given[key] === 'boolean') settings[key] = given[key];
 	}
+	if ((KEYBOARDS as readonly unknown[]).includes(given.keyboard)) settings.keyboard = given.keyboard;
 	return {
 		...data,
 		folder: data.folder ?? null,

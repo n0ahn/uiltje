@@ -29,6 +29,8 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 
 ## Next steps (in order)
 
+0b. **Try the Greek keyboard** (NOTES "Greek keyboard per set"): new set -> Toetsenbord Grieks, type rows, practise in learn/test/cards; run `npm run check`.
+
 0. **Run `ai/sql/003_profiles.sql`**, then try with two accounts: set a set to Openbaar in the editor, open the friend's profile, copy the set, switch statistics off, delete a test account.
 
 1. **Try phase 5 for real.** Run the SQL, sign up (email + GitHub), create a set, practice, do a test, log out and in, import guest data. Fix whatever the real project shows (see the Phase 5 notes in NOTES.md).
