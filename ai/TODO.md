@@ -90,12 +90,17 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] OCR step (Gemini vision, same call as structuring), server route `/api/ai/import`, Gemini with retry + model fallback (`lib/server/ai/`)
 - [x] Preview/edit screen (always): `/sets/ai`, reuses `ListEditor`, nothing saved until Opslaan; "Open in de volledige editor" hands over as concept
 - [x] Entry points: "Met AI" on `/sets`, link in the empty editor
+- [x] Third source "Document" (PDF -> Gemini inline, DOCX -> text extracted in the browser), next to Foto's and Tekst
+- [ ] Try Document with a real PDF (typed + scanned) and a real DOCX (table + plain lines)
 - [ ] Set `GEMINI_API_KEY` (+ `GEMINI_MODELS`) in `.env` and on Vercel, then try it with real photos (Latin table, Greek table, vocab list) and fix what the real model does
 - [ ] Phone check: camera input, thumbnails, review screen on 390px
 
 ## Phase 9 — Generated questions (PLAN §9)
-- [ ] Decide correctness strategy (NOTES.md open question)
-- [ ] Stijlfiguren + grammar question templates, background generation
+- [x] Verified grammar catalogues from the CvTE syllabi 2027 (`lib/grammar/`): Latin 84 items + 120 stamtijden, Greek 107 items (incl. Ionisch of Herodotus, Homerus, tragedie)
+- [x] Correctness strategy agreed: owner approves every question at first, others maybe later (NOTES "Phase 9 correctness strategy")
+- [ ] Question format in the schema (new list template, schema v4 + migration) and a render in the practice runners
+- [ ] Generation route (server, Gemini, pre-generated per catalogue item) + approval screen (owner only; data model must allow more approvers later)
+- [ ] Stijlfiguren question template first (smallest, clearest answers), then grammar (syntaxis), then vormleer
 
 ## Phase 10 — Default lists
 - [ ] Curated library, add-to-my-sets

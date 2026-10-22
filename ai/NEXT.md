@@ -1,6 +1,6 @@
 # NEXT.md — Uiltje
 
-Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src/` (updated 2026-10-21, after phase 8 AI import). Update this file when the next steps change. Waiting for instructions before starting any of these.
+Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src/` (updated 2026-10-21, phase 8 tried and working, phase 9 started). Update this file when the next steps change. Waiting for instructions before starting any of these.
 
 ## Current state
 
@@ -14,6 +14,8 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 - Test system: every form once, optional time limit, optional fixed number of forms, grade (10 x score, passed from 5,5 = 55%), results stored locally (last 50).
 - `/vakken`, `/vak/[subject]` and `/settings` exist. Settings (level, practice defaults, grade, sound) go through `StorageAdapter`.
 - Phase 5: `ai/sql/001_persistence.sql` (run it once in the Supabase SQL editor), `storage/supabase.ts` (full `StorageAdapter`), `getStorage()` switches on the session (guest = localStorage), guest → account import (dialog after login, card on `/settings`), logout on `/settings`. Verified with svelte-check, an in-memory fake client and the SQL in PGlite; NOT yet run against the real project and real browser.
+- Phase 9 started: verified grammar catalogue from the 2027 LTC syllabus is in `lib/grammar/` (data only, no UI yet). Latin and Greek catalogues done; owner approved the strategy (owner-only approval for now).
+- Phase 8 also has a Document source (PDF/DOCX, see NOTES "Document source"), untested against real Gemini.
 - Phase 8 AI import is in code (NOTES "Phase 8 AI import"): `/sets/ai`, `/api/ai/import`, entry points on `/sets` and the empty editor. Needs `GEMINI_API_KEY` (and ideally `GEMINI_MODELS`) in `.env` and on Vercel; not yet run against the real Gemini API or in a browser.
 - Phase 7 is mostly done (sfx, confetti, themes, mobile pass, animations; NOTES "Phase 7 polish"). Phases 9 and 10 are not started.
 - Verified in a scratch SvelteKit 3 project (`svelte-check` clean, build ok, engine scenarios, browser checks incl. vocab learn/test and the set page). Not yet run in the real repo.
@@ -39,7 +41,7 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 5. **Try phase 6 social for real.** Run `002_social.sql`, make two accounts, upload a photo, add each other (search and invite link), practise, check `/leaderboard`, share a set by link and to a friend, switch the leaderboard off. Check the `avatars` bucket is public in the dashboard.
 6. **Phase 7 rest.** Look at the new themes, animations and phone layout on a real phone; practice screens, editor and set page still need a phone pass with the new type scale. Tweak `--text-sm` or the spring easing if something feels off.
 7. **Try phase 8 for real.** Create a key in Google AI Studio, put `GEMINI_API_KEY` (and `GEMINI_MODELS`, names from AI Studio) in `.env` and Vercel, log in, open `/sets/ai`, try a photo of a Latin table, a Greek table and a vocab list, plus pasted text. Check accents, tags/stages on declensions, the review screen on a phone. Tune the `SYSTEM` prompt in `server/ai/import.ts` and the default model list.
-8. **Phase 9 generated questions.** Decide the correctness strategy first (see Open questions), then templates (Stijlfiguren, Grammatica) and background generation.
+8. **Phase 9 generated questions.** Catalogues and strategy done. Next: question format (schema v4 + migration), generation route + approval screen (owner only), stijlfiguren first.
 9.  **Vocab polish.** Try the learn flow with real classmates' sets and tune `roundSize`, spacing and distractor choice in `engine/vocab.ts`. The Meerkeuze, Flashcards, Dictee, Spelling and Hints modes exist now (NOTES "Practice modes"); try them and tune. Vocab rows in the same list with several translations are accepted in any of them.
 9. **Phase 10 default lists.** Curated library that users can add to their own sets.
 

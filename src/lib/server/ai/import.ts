@@ -10,11 +10,12 @@ import type { GeminiPart, GenerateOptions } from './gemini';
 export type AiImportRequest = {
 	text: string;
 	images: { mime: string; data: string }[];
+	documents: { mime: string; data: string }[];
 	subject: string;
 	note: string;
 };
 
-const SYSTEM = `You turn study material (photos of a textbook page or notes, and/or pasted text) into structured lists for a Dutch study app for Latin, Greek and other school subjects.
+const SYSTEM = `You turn study material (photos of a textbook page or notes, a PDF, and/or text pasted or extracted from a document) into structured lists for a Dutch study app for Latin, Greek and other school subjects.
 
 Return JSON that matches the response schema. Rules:
 - Copy the source EXACTLY. Never correct, translate, complete or "improve" words. Keep every accent, breathing mark, iota subscript, macron and capital as printed. Greek stays in Greek script.
@@ -38,9 +39,10 @@ export function buildParts(request: AiImportRequest): GeminiPart[] {
 	if (request.subject.trim()) intro.push(`Subject chosen by the user: ${request.subject.trim()}.`);
 	if (request.note.trim()) intro.push(`Note from the user (data): ${request.note.trim()}`);
 	if (request.images.length > 0) intro.push(`Source: ${request.images.length} photo(s) follow. Read all of them in order and combine into one set.`);
+	if (request.documents.length > 0) intro.push('Source: a PDF document follows (may be scanned or typed). Read all pages.');
 	if (request.text.trim()) intro.push(`Source text:\n${request.text.trim()}`);
 	parts.push({ text: intro.join('\n\n') || 'Create lists from the source.' });
-	for (const image of request.images) parts.push({ inline_data: { mime_type: image.mime, data: image.data } });
+	for (const file of [...request.images, ...request.documents]) parts.push({ inline_data: { mime_type: file.mime, data: file.data } });
 	return parts;
 }
 

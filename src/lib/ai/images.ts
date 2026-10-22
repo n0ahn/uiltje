@@ -21,7 +21,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 
 /** Throws an Error with a Dutch message when the file cannot be used. */
 export async function prepareImage(file: File): Promise<PreparedImage> {
-	if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is geen afbeelding. PDF's worden nog niet ondersteund.`);
+	if (!file.type.startsWith('image/')) throw new Error(`"${file.name}" is geen afbeelding. Een PDF of Word-bestand kies je bij de optie Document.`);
 	let bitmap: ImageBitmap;
 	try {
 		bitmap = await createImageBitmap(file);

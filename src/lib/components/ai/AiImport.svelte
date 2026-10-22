@@ -2,6 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { requestAiImport } from '../../ai/client';
+	import { prepareDocument, MAX_PDF_BYTES, type PreparedDocument } from '../../ai/documents';
 	import { MAX_IMAGES, prepareImage, type PreparedImage } from '../../ai/images';
 	import { saveDraft } from '../../editor/draft';
 	import { toDraft } from '../../editor/json';
@@ -24,13 +25,15 @@
 	const storage = getStorage();
 	const SUBJECTS = ['Latijn', 'Grieks', 'Nederlands', 'Engels', 'Frans', 'Duits'];
 	const SOURCES = [
+		{ id: 'document', name: 'Document', text: 'Kies een PDF of Word-bestand (.docx) met je rijtjes of woordenlijst.' },
 		{ id: 'photos', name: 'Foto\'s', text: 'Maak een foto van je boek of schrift, of kies foto\'s uit je galerij.' },
 		{ id: 'text', name: 'Tekst', text: 'Plak tekst die je ergens vandaan hebt gekopieerd.' }
 	] as const;
 
 	type Step = 'input' | 'working' | 'review';
 	let step = $state<Step>('input');
-	let source = $state<'photos' | 'text'>('photos');
+	let source = $state<'document' | 'photos' | 'text'>('photos');
+	let doc = $state<PreparedDocument | null>(null);
 	let images = $state<PreparedImage[]>([]);
 	let text = $state('');
 	let subject = $state('');
@@ -47,7 +50,8 @@
 	let pasteOpen = $state(false);
 	let abort: AbortController | null = null;
 
-	const hasInput = $derived(source === 'photos' ? images.length > 0 : text.trim() !== '');
+	const hasInput = $derived(source === 'photos' ? images.length > 0 : source === 'document' ? doc !== null : text.trim() !== '');
+	const sourceLabel = $derived(source === 'photos' ? (images.length === 1 ? 'foto' : 'foto\'s') : source === 'document' ? 'document' : 'tekst');
 	const active = $derived(editor?.set.lists.find((l) => l.id === activeId) ?? editor?.set.lists[0] ?? null);
 	const rowTotal = $derived(editor?.set.lists.reduce((sum, l) => sum + l.rows.length, 0) ?? 0);
 
@@ -78,16 +82,33 @@
 		images = images.filter((i) => i.id !== id);
 	}
 
+	async function addDocument(file: File) {
+		problem = '';
+		preparing = true;
+		try {
+			doc = await prepareDocument(file);
+		} catch (error) {
+			problem = error instanceof Error ? error.message : 'Dit bestand kan niet gebruikt worden.';
+		}
+		preparing = false;
+	}
+
 	function onPick(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		if (input.files) void addFiles(input.files);
+		const file = input.files?.[0];
+		if (source === 'document') {
+			if (file) void addDocument(file);
+		} else if (input.files) void addFiles(input.files);
 		input.value = '';
 	}
 
 	function onDrop(event: DragEvent) {
 		event.preventDefault();
 		dragging = false;
-		if (event.dataTransfer?.files.length) void addFiles(event.dataTransfer.files);
+		const files = event.dataTransfer?.files;
+		if (!files?.length) return;
+		if (source === 'document') void addDocument(files[0]);
+		else void addFiles(files);
 	}
 
 	async function start() {
@@ -95,7 +116,7 @@
 		problem = '';
 		step = 'working';
 		abort = new AbortController();
-		const outcome = await requestAiImport({ text: source === 'text' ? text : '', images: source === 'photos' ? images : [], subject, note }, abort.signal);
+		const outcome = await requestAiImport({ text: source === 'text' ? text : source === 'document' && doc?.kind === 'docx' ? doc.text : '', images: source === 'photos' ? images : [], pdfs: source === 'document' && doc?.kind === 'pdf' ? [{ data: doc.data }] : [], subject, note }, abort.signal);
 		abort = null;
 		if (!outcome.ok) {
 			step = 'input';
@@ -160,7 +181,7 @@
 		<div class="flex items-center gap-4">
 			<Owl pose="thinking" size={64} />
 			<div class="min-w-0 flex-1" role="status" aria-live="polite">
-				<h1 class="font-heading text-2xl font-semibold">Uiltje leest je {source === 'photos' ? images.length === 1 ? 'foto' : 'foto\'s' : 'tekst'}…</h1>
+				<h1 class="font-heading text-2xl font-semibold">Uiltje leest je {sourceLabel}…</h1>
 				<p class="text-text-muted">Dit duurt meestal 10 tot 30 seconden.</p>
 			</div>
 			<Button variant="ghost" onclick={cancel}>Annuleren</Button>
@@ -247,14 +268,37 @@
 			<Owl pose="idle" size={64} />
 			<div>
 				<h1 class="font-heading text-3xl font-semibold">Maken met AI</h1>
-				<p class="text-text-muted">Foto of tekst erin, een set eruit. Je controleert alles voordat het wordt opgeslagen.</p>
+				<p class="text-text-muted">Document, foto of tekst erin, een set eruit. Je controleert alles voordat het wordt opgeslagen.</p>
 			</div>
 		</div>
 
 		<Card class="flex flex-col gap-5">
 			<Segmented legend="Waaruit wil je een set maken?" options={SOURCES} bind:value={source} />
 
-			{#if source === 'photos'}
+			{#if source === 'document'}
+				<div>
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<label
+						class={['flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed p-6 text-center', dragging ? 'border-primary bg-primary-soft' : 'border-border bg-surface-2 hover:border-primary']}
+						ondragover={(e) => { e.preventDefault(); dragging = true; }}
+						ondragleave={() => (dragging = false)}
+						ondrop={onDrop}
+					>
+						<Icon name="import" size={28} />
+						<span class="font-heading text-lg font-semibold">{preparing ? 'Document lezen…' : 'Kies of sleep een document hierheen'}</span>
+						<span class="text-sm text-text-muted">PDF (tot {(MAX_PDF_BYTES / 1_000_000).toFixed(1).replace('.', ',')} MB) of Word (.docx). Eén bestand tegelijk.</span>
+						<input type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="sr-only" onchange={onPick} aria-label="Document kiezen" />
+					</label>
+					{#if doc}
+						<div class="mt-3 flex items-center gap-3 rounded-tile border border-border bg-surface px-3 py-2.5">
+							<Icon name="import" size={20} />
+							<span class="min-w-0 flex-1 truncate font-semibold">{doc.name}</span>
+							<span class="shrink-0 text-sm text-text-muted">{doc.kind === 'pdf' ? 'PDF' : `Word · ${doc.text.length.toLocaleString('nl-NL')} tekens`}</span>
+							<Button variant="secondary" size="sm" iconOnly aria-label="Document {doc.name} weghalen" onclick={() => (doc = null)}><Icon name="x" size={16} /></Button>
+						</div>
+					{/if}
+				</div>
+			{:else if source === 'photos'}
 				<div>
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<label
@@ -302,7 +346,7 @@
 				<Button onclick={start} disabled={!hasInput || preparing} class="min-w-40"><Icon name="sparkles" size={18} /> Maak set</Button>
 				<p class="min-h-6 min-w-0 flex-1 text-sm font-semibold text-rose-edge" role="alert">{problem}</p>
 			</div>
-			<p class="text-sm text-text-muted">Je foto's en tekst worden naar Google Gemini gestuurd om te lezen en niet door Uiltje bewaard. Gebruik dus geen foto's met persoonlijke gegevens.</p>
+			<p class="text-sm text-text-muted">Je foto's, documenten en tekst worden naar Google Gemini gestuurd om te lezen en niet door Uiltje bewaard. Gebruik dus niets met persoonlijke gegevens.</p>
 		</Card>
 	</div>
 {/if}

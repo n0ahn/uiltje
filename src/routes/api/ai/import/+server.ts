@@ -15,7 +15,7 @@ export const config = { maxDuration: 60 };
 const MAX_IMAGES = 5;
 const MAX_IMAGE_CHARS = 1_400_000; // base64 length, about 1 MB of JPEG
 const MAX_TOTAL_CHARS = 3_800_000;
-const MAX_TEXT_CHARS = 20_000;
+const MAX_TEXT_CHARS = 40_000; // pasted text is capped at 20 000 in the UI; extracted DOCX text may be longer
 
 const BodySchema = z.object({
 	text: z.string().max(MAX_TEXT_CHARS).default(''),
@@ -24,6 +24,10 @@ const BodySchema = z.object({
 	images: z
 		.array(z.object({ mime: z.enum(['image/jpeg', 'image/png', 'image/webp']), data: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/).max(MAX_IMAGE_CHARS) }))
 		.max(MAX_IMAGES)
+		.default([]),
+	documents: z
+		.array(z.object({ mime: z.literal('application/pdf'), data: z.string().regex(/^JVBER[A-Za-z0-9+/]*={0,2}$/).max(MAX_TOTAL_CHARS) }))
+		.max(1)
 		.default([])
 });
 
@@ -50,8 +54,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	} catch {
 		return fail(400, 'invalid', 'Dit verzoek is niet geldig.');
 	}
-	if (body.text.trim() === '' && body.images.length === 0) return fail(400, 'empty', 'Voeg een foto of tekst toe.');
-	if (body.images.reduce((sum, image) => sum + image.data.length, 0) > MAX_TOTAL_CHARS) return fail(413, 'too_big', 'De foto\'s zijn samen te groot. Kies er minder, of kleinere.');
+	if (body.text.trim() === '' && body.images.length === 0 && body.documents.length === 0) return fail(400, 'empty', 'Voeg een foto, document of tekst toe.');
+	if ([...body.images, ...body.documents].reduce((sum, file) => sum + file.data.length, 0) > MAX_TOTAL_CHARS) return fail(413, 'too_big', 'De bestanden zijn samen te groot. Kies er minder, of kleinere.');
 
 	const wait = checkAiLimit(user.id);
 	if (wait > 0) return fail(429, 'limit', `Even rustig aan: je kunt het over ${Math.ceil(wait / 60)} min opnieuw proberen.`, { 'retry-after': String(wait) });
