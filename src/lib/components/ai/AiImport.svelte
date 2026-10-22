@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { requestAiImport } from '../../ai/client';
 	import { prepareDocument, MAX_PDF_BYTES, type PreparedDocument } from '../../ai/documents';
+	import { mergeIntoSet, planMerge } from '../../ai/merge';
 	import { MAX_IMAGES, prepareImage, type PreparedImage } from '../../ai/images';
 	import { saveDraft } from '../../editor/draft';
 	import { toDraft } from '../../editor/json';
@@ -10,7 +12,8 @@
 	import { auth } from '../../state/auth.svelte';
 	import { toasts } from '../../state/toast.svelte';
 	import { getStorage } from '../../storage';
-	import { StorageError } from '../../storage/adapter';
+	import { StorageError, type SetSummary } from '../../storage/adapter';
+	import type { StudySet } from '../../schema/types';
 	import AiImportSkeleton from '../skeleton/AiImportSkeleton.svelte';
 	import ListEditor from '../editor/ListEditor.svelte';
 	import PasteModal from '../editor/PasteModal.svelte';
@@ -21,6 +24,7 @@
 	import MenuItem from '../ui/MenuItem.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import Segmented from '../ui/Segmented.svelte';
+	import Skeleton from '../ui/Skeleton.svelte';
 
 	const storage = getStorage();
 	const SUBJECTS = ['Latijn', 'Grieks', 'Nederlands', 'Engels', 'Frans', 'Duits'];
@@ -34,6 +38,11 @@
 	let step = $state<Step>('input');
 	let source = $state<'document' | 'photos' | 'text'>('photos');
 	let doc = $state<PreparedDocument | null>(null);
+	// Adding to an existing set: '' means a new set.
+	let targetId = $state('');
+	let target = $state<StudySet | null>(null);
+	let setOptions = $state<SetSummary[]>([]);
+	let loadingSets = $state(true);
 	let images = $state<PreparedImage[]>([]);
 	let text = $state('');
 	let subject = $state('');
@@ -54,6 +63,21 @@
 	const sourceLabel = $derived(source === 'photos' ? (images.length === 1 ? 'foto' : 'foto\'s') : source === 'document' ? 'document' : 'tekst');
 	const active = $derived(editor?.set.lists.find((l) => l.id === activeId) ?? editor?.set.lists[0] ?? null);
 	const rowTotal = $derived(editor?.set.lists.reduce((sum, l) => sum + l.rows.length, 0) ?? 0);
+
+	const plan = $derived(target && editor ? planMerge(target, editor.set.lists) : []);
+	const planAdded = $derived(plan.reduce((sum, item) => sum + item.added, 0));
+	const planSkipped = $derived(plan.reduce((sum, item) => sum + item.skipped, 0));
+
+	onMount(async () => {
+		try {
+			setOptions = await storage.listSets();
+			const wanted = page.url.searchParams.get('to');
+			if (wanted && setOptions.some((s) => s.id === wanted)) targetId = wanted;
+		} catch {
+			setOptions = []; // adding to a set is optional: the page still works without the list
+		}
+		loadingSets = false;
+	});
 
 	onDestroy(() => {
 		abort?.abort();
@@ -114,9 +138,17 @@
 	async function start() {
 		if (!hasInput || step === 'working') return;
 		problem = '';
+		target = null;
+		if (targetId) {
+			target = await storage.getSet(targetId);
+			if (!target) {
+				problem = 'Deze set bestaat niet meer. Kies een andere set of maak een nieuwe.';
+				return;
+			}
+		}
 		step = 'working';
 		abort = new AbortController();
-		const outcome = await requestAiImport({ text: source === 'text' ? text : source === 'document' && doc?.kind === 'docx' ? doc.text : '', images: source === 'photos' ? images : [], pdfs: source === 'document' && doc?.kind === 'pdf' ? [{ data: doc.data }] : [], subject, note }, abort.signal);
+		const outcome = await requestAiImport({ existing: target?.lists.map((l) => l.title.trim()).filter(Boolean) ?? [],  text: source === 'text' ? text : source === 'document' && doc?.kind === 'docx' ? doc.text : '', images: source === 'photos' ? images : [], pdfs: source === 'document' && doc?.kind === 'pdf' ? [{ data: doc.data }] : [], subject: subject || target?.subject || '', note }, abort.signal);
 		abort = null;
 		if (!outcome.ok) {
 			step = 'input';
@@ -138,6 +170,7 @@
 	function backToInput() {
 		step = 'input';
 		editor = null;
+		target = null;
 	}
 
 	async function save() {
@@ -150,8 +183,18 @@
 		}
 		saving = true;
 		try {
-			await storage.saveSet(result.set);
-			await goto(`/sets/${result.set.id}`);
+			let finalSet = result.set;
+			if (target) {
+				// Merge into the freshest copy, in case the set changed while the AI was reading.
+				const fresh = await storage.getSet(target.id);
+				if (!fresh) {
+					toasts.show('De set bestaat niet meer');
+					return;
+				}
+				finalSet = mergeIntoSet(fresh, result.set).set;
+			}
+			await storage.saveSet(finalSet);
+			await goto(`/sets/${finalSet.id}`);
 		} catch (error) {
 			toasts.show(error instanceof StorageError ? error.message : 'Opslaan is mislukt');
 		} finally {
@@ -205,6 +248,9 @@
 			<Owl pose="happy" size={48} />
 			<div class="min-w-0">
 				<p class="font-heading text-lg font-semibold">{rowTotal} {rowTotal === 1 ? 'rij' : 'rijen'} in {editor.set.lists.length} {editor.set.lists.length === 1 ? 'lijst' : 'lijsten'} gevonden</p>
+				{#if target}
+					<p class="mt-1 font-semibold">Wordt toegevoegd aan "{target.title}": {planAdded} {planAdded === 1 ? 'nieuwe rij' : 'nieuwe rijen'}{planSkipped > 0 ? `, ${planSkipped} ${planSkipped === 1 ? 'staat' : 'staan'} er al en ${planSkipped === 1 ? 'wordt' : 'worden'} overgeslagen` : ''}.</p>
+				{/if}
 				<p class="text-text-muted">De AI maakt weleens fouten, vooral bij accenten en kleine lettertjes. Loop alles even na voordat je opslaat; er is nog niets bewaard.</p>
 				{#if notes.length > 0}
 					<ul class="mt-2 list-disc pl-5 text-sm">{#each notes as note (note)}<li>{note}</li>{/each}</ul>
@@ -219,6 +265,7 @@
 			</div>
 		{/if}
 
+		{#if !target}
 		<Card class="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
 			<label>
 				<span class="mb-1.5 block text-sm font-semibold text-text-muted">Titel</span>
@@ -234,12 +281,13 @@
 			</label>
 			<datalist id="ai-subjects">{#each SUBJECTS as s (s)}<option value={s}></option>{/each}</datalist>
 		</Card>
+		{/if}
 
 		<div class="grid items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
 			<nav aria-label="Lijsten in deze set" class="flex flex-col gap-2 lg:sticky lg:top-20">
 				<p class="px-1 text-sm font-semibold text-text-muted">Lijsten ({editor.set.lists.length})</p>
 				<ul class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
-					{#each editor.set.lists as list (list.id)}
+					{#each editor.set.lists as list, i (list.id)}
 						<li class="shrink-0 lg:shrink">
 							<button
 								type="button"
@@ -247,7 +295,12 @@
 								class={['flex w-full items-center justify-between gap-3 rounded-tile border-2 px-3 py-2.5 text-left', active?.id === list.id ? 'border-primary bg-primary-soft' : 'border-border bg-surface hover:bg-surface-2']}
 								onclick={() => (activeId = list.id)}
 							>
-								<span class="min-w-0 truncate font-heading font-semibold">{list.title.trim() || 'Naamloze lijst'}</span>
+								<span class="min-w-0">
+									<span class="block truncate font-heading font-semibold">{list.title.trim() || 'Naamloze lijst'}</span>
+									{#if target && plan[i]}
+										<span class="block truncate text-xs text-text-muted">{plan[i].targetTitle ? `Bij "${plan[i].targetTitle}" · ${plan[i].added} nieuw${plan[i].skipped > 0 ? `, ${plan[i].skipped} dubbel` : ''}` : 'Nieuwe lijst'}</span>
+									{/if}
+								</span>
 								<span class="shrink-0 text-sm text-text-muted">{list.rows.length}</span>
 							</button>
 						</li>
@@ -330,6 +383,20 @@
 				</label>
 			{/if}
 
+			{#if loadingSets || setOptions.length > 0}
+				<label class="block">
+					<span class="mb-1.5 block text-sm font-semibold text-text-muted">Opslaan in</span>
+					{#if loadingSets}
+						<Skeleton class="h-11 w-full" />
+					{:else}
+						<select class="input" bind:value={targetId}>
+							<option value="">Een nieuwe set</option>
+							{#each setOptions as s (s.id)}<option value={s.id}>Toevoegen aan: {s.title}{s.subject ? ` · ${s.subject}` : ''}</option>{/each}
+						</select>
+					{/if}
+				</label>
+			{/if}
+
 			<div class="grid gap-4 sm:grid-cols-2">
 				<label>
 					<span class="mb-1.5 block text-sm font-semibold text-text-muted">Vak (optioneel)</span>
@@ -343,7 +410,7 @@
 			</div>
 
 			<div class="flex flex-wrap items-center gap-3">
-				<Button onclick={start} disabled={!hasInput || preparing} class="min-w-40"><Icon name="sparkles" size={18} /> Maak set</Button>
+				<Button onclick={start} disabled={!hasInput || preparing} class="min-w-40"><Icon name="sparkles" size={18} /> {targetId ? 'Lees en voeg toe' : 'Maak set'}</Button>
 				<p class="min-h-6 min-w-0 flex-1 text-sm font-semibold text-rose-edge" role="alert">{problem}</p>
 			</div>
 			<p class="text-sm text-text-muted">Je foto's, documenten en tekst worden naar Google Gemini gestuurd om te lezen en niet door Uiltje bewaard. Gebruik dus niets met persoonlijke gegevens.</p>

@@ -91,6 +91,7 @@
 			<Button href="/sets/{set.id}/edit" variant="secondary" size="lg"><Icon name="pencil" size={18} /> Bewerken</Button>
 			<Dropdown label="Meer acties" variant="ghost" size="lg" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={22} />{/snippet}
+				<MenuItem icon="sparkles" href="/sets/ai?to={set.id}">Toevoegen met AI</MenuItem>
 				<MenuItem icon="share" onclick={() => (shareOpen = true)}>Delen…</MenuItem>
 				<MenuItem icon="download" onclick={() => set && downloadSetJson(set)}>Exporteren als JSON</MenuItem>
 				<MenuItem icon="trash" danger onclick={() => (confirmOpen = true)}>Set verwijderen</MenuItem>

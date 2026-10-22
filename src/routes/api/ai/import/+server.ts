@@ -25,6 +25,7 @@ const BodySchema = z.object({
 		.array(z.object({ mime: z.enum(['image/jpeg', 'image/png', 'image/webp']), data: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/).max(MAX_IMAGE_CHARS) }))
 		.max(MAX_IMAGES)
 		.default([]),
+	existing: z.array(z.string().max(100)).max(30).default([]),
 	documents: z
 		.array(z.object({ mime: z.literal('application/pdf'), data: z.string().regex(/^JVBER[A-Za-z0-9+/]*={0,2}$/).max(MAX_TOTAL_CHARS) }))
 		.max(1)

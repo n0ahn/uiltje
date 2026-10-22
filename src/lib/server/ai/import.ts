@@ -11,6 +11,8 @@ export type AiImportRequest = {
 	text: string;
 	images: { mime: string; data: string }[];
 	documents: { mime: string; data: string }[];
+	/** Titles of lists already in the set the user adds to (data, may be empty). */
+	existing: string[];
 	subject: string;
 	note: string;
 };
@@ -39,6 +41,7 @@ export function buildParts(request: AiImportRequest): GeminiPart[] {
 	if (request.subject.trim()) intro.push(`Subject chosen by the user: ${request.subject.trim()}.`);
 	if (request.note.trim()) intro.push(`Note from the user (data): ${request.note.trim()}`);
 	if (request.images.length > 0) intro.push(`Source: ${request.images.length} photo(s) follow. Read all of them in order and combine into one set.`);
+	if (request.existing.length > 0) intro.push(`The user is adding to an existing set. Its lists (data): ${request.existing.map((t) => JSON.stringify(t)).join(', ')}. When new material belongs to one of these lists, use exactly that title for the list.`);
 	if (request.documents.length > 0) intro.push('Source: a PDF document follows (may be scanned or typed). Read all pages.');
 	if (request.text.trim()) intro.push(`Source text:\n${request.text.trim()}`);
 	parts.push({ text: intro.join('\n\n') || 'Create lists from the source.' });

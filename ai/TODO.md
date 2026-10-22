@@ -91,6 +91,8 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Preview/edit screen (always): `/sets/ai`, reuses `ListEditor`, nothing saved until Opslaan; "Open in de volledige editor" hands over as concept
 - [x] Entry points: "Met AI" on `/sets`, link in the empty editor
 - [x] Third source "Document" (PDF -> Gemini inline, DOCX -> text extracted in the browser), next to Foto's and Tekst
+- [x] Add AI results to an existing set (`?to=<id>` from the set menu, or "Opslaan in" on `/sets/ai`): new lists appended, same title+kind merged without duplicate prompts
+- [ ] Try adding to a set with real photos (same list title merges, new title makes a new list)
 - [ ] Try Document with a real PDF (typed + scanned) and a real DOCX (table + plain lines)
 - [ ] Set `GEMINI_API_KEY` (+ `GEMINI_MODELS`) in `.env` and on Vercel, then try it with real photos (Latin table, Greek table, vocab list) and fix what the real model does
 - [ ] Phone check: camera input, thumbnails, review screen on 390px
