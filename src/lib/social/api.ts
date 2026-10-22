@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { parseStudySet } from '../schema/migrate';
 import { StorageError } from '../storage/adapter';
 import {
+	challengeRow,
 	foundRow,
 	friendshipRow,
 	incomingRow,
@@ -12,6 +13,7 @@ import {
 	profileRow,
 	profileViewRow,
 	sharedRow,
+	toChallenge,
 	toFound,
 	toFriendship,
 	toIncoming,
@@ -210,6 +212,26 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 
 		async respondToShare(shareId, accept) {
 			await rpc('respond_set_share', { p_share_id: shareId, p_accept: accept });
+		},
+
+		async sendChallenge(setId, friendId) {
+			await rpc('send_challenge', { p_set_id: setId, p_friend_id: friendId }, 'Uitdagen is niet gelukt. Staat de set in je account en heeft hij rijen? Heb je 005_challenges.sql al uitgevoerd?');
+		},
+
+		async listChallenges() {
+			return parseRows(challengeRow, await rpc('list_challenges', undefined, 'Uitdagingen laden lukt niet. Heb je 005_challenges.sql al uitgevoerd?')).map((r) => toChallenge(url, r));
+		},
+
+		async getChallengeSet(challengeId) {
+			return toShared(await rpc('get_challenge_set', { p_id: challengeId }));
+		},
+
+		async respondToChallenge(challengeId, accept, copySetId) {
+			await rpc('respond_challenge', { p_id: challengeId, p_accept: accept, p_copy_set_id: copySetId ?? null });
+		},
+
+		async removeChallenge(challengeId) {
+			await rpc('delete_challenge', { p_id: challengeId });
 		},
 
 		async getProfile(username) {

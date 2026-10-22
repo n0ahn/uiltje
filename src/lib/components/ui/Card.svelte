@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { ClassValue } from 'svelte/elements';
 	import { accentStyle } from './accent';
 	import type { Accent } from './accent';
 
@@ -15,7 +16,8 @@
 		rise?: number;
 		/** Hides a decorative card (e.g. a skeleton) from screen readers. */
 		'aria-hidden'?: 'true' | boolean;
-		class?: string;
+		/** Extra classes; arrays and conditions are fine (Svelte merges them like clsx). */
+		class?: ClassValue;
 		children: Snippet;
 	};
 

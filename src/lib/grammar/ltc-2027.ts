@@ -12,7 +12,7 @@ export const LTC_2027_SOURCE = {
 } as const;
 
 export type Ex = [text: string, nl: string, ref: string];
-export function item(id: string, term: string, summary: string, extra: { examples?: Ex[]; parts?: string[]; examYear?: number; notRequired?: boolean } = {}): GrammarItem {
+export function item(id: string, term: string, summary: string, extra: { examples?: Ex[]; parts?: string[]; examYear?: number; notRequired?: boolean; topic?: boolean } = {}): GrammarItem {
 	const { examples, ...rest } = extra;
 	return { id, term, summary, ...rest, ...(examples ? { examples: examples.map(([text, nl, ref]) => ({ text, nl, ref })) } : {}) };
 }
@@ -209,8 +209,8 @@ const syntaxis: GrammarSection = {
 			parts: ['bijwoordelijke bepaling van plaats, tijd, middel, reden, wijze, maat, verwijdering en vergelijking', 'aanvulling bij werkwoorden', 'aanvulling bij bijvoeglijke naamwoorden', 'ablativus absolutus', 'na voorzetsels']
 		}),
 		item('s-vocativus', 'vocativus', 'De aanspreekvorm.'),
-		item('s-voorzetsels', 'voorzetsels', 'Het gebruik van de naamvallen bij voorzetsels.'),
-		item('s-bijvoeglijk', 'bijvoeglijke naamwoorden: gebruik', 'Bijvoeglijk en zelfstandig gebruikt.'),
+		item('s-voorzetsels', 'voorzetsels', 'Het gebruik van de naamvallen bij voorzetsels.', { topic: true }),
+		item('s-bijvoeglijk', 'bijvoeglijke naamwoorden: gebruik', 'Bijvoeglijk en zelfstandig gebruikt.', { topic: true }),
 		item('s-trappen', 'trappen van vergelijking: gebruik', 'Gebruik en betekenis van de vergrotende en overtreffende trap.', {
 			parts: ['vergrotende trap, ook met de betekenissen "tamelijk" en "te"', 'quam of ablativus van vergelijking na een vergrotende trap', 'overtreffende trap: "-ste" en "zeer"', 'quam met een overtreffende trap: "zo ... mogelijk"']
 		}),

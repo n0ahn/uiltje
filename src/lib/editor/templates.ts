@@ -2,7 +2,10 @@
 import type { DraftList, DraftRow } from './types';
 import { newId } from '../utils/id';
 
-export type TemplateId = 'declension' | 'conjugation' | 'vocab' | 'custom';
+export type TemplateId = 'declension' | 'conjugation' | 'vocab' | 'custom' | 'stijl' | 'grammatica';
+
+/** These two templates do not create a list straight away: the learner first picks items from the grammar catalogue. */
+export const CATALOGUE_TEMPLATES: readonly TemplateId[] = ['stijl', 'grammatica'];
 
 export type TemplateInfo = { id: TemplateId; name: string; description: string; example: string };
 export type ComingSoonInfo = Omit<TemplateInfo, 'id'>;
@@ -41,12 +44,12 @@ export const TEMPLATE_CATEGORIES: readonly TemplateCategory[] = [
 	{
 		id: 'grammatica',
 		name: 'Grammatica & stijl',
-		description: 'Stijlfiguren, participium, coniunctivus en andere regels, met hulp van AI.',
-		templates: [],
-		comingSoon: [
-			{ name: 'Stijlfiguren', description: 'Herken en benoem stijlfiguren in een zin, met uitleg.', example: 'tricolon → drie delen' },
-			{ name: 'Grammatica', description: 'Participium, coniunctivus en andere regels, met vragen die AI voor je maakt.', example: 'cum + coniunctivus' }
-		]
+		description: 'Kies uit de lijst van het examenprogramma, of voeg zelf iets toe.',
+		templates: [
+			{ id: 'stijl', name: 'Stijlfiguren', description: 'Stijlfiguren, verteltechnieken en retorica: kies welke je nodig hebt.', example: 'tricolon ← opsomming in drie delen' },
+			{ id: 'grammatica', name: 'Grammatica', description: 'Naamvallen, tijden, coniunctivus, participium en meer: kies wat je nodig hebt.', example: 'ablativus absolutus ← losse bepaling' }
+		],
+		comingSoon: []
 	}
 ];
 
@@ -89,6 +92,17 @@ export function createList(template: TemplateId, greek = false): DraftList {
 		};
 	}
 
+	if (template === 'stijl' || template === 'grammatica') {
+		return {
+			...base,
+			kind: 'concept',
+			title: template === 'stijl' ? 'Stijlfiguren' : 'Grammatica',
+			columns: { prompt: 'Uitleg of voorbeeld', answer: 'Term' },
+			dimensions: [],
+			rows: []
+		};
+	}
+
 	if (template === 'vocab') {
 		return {
 			...base,
@@ -114,5 +128,6 @@ export const KIND_LABELS: Record<DraftList['kind'], string> = {
 	declension: 'Declinatie',
 	conjugation: 'Vervoeging',
 	vocab: 'Woordjes',
+	concept: 'Begrippen',
 	custom: 'Overig'
 };

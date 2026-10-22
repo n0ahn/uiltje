@@ -3,7 +3,7 @@
 	import { KIND_LABELS } from '../../editor/templates';
 	import type { EditorState } from '../../editor/state.svelte';
 	import type { DraftList } from '../../editor/types';
-	import { LIST_KINDS, type Keyboard } from '../../schema/types';
+	import { isWordKind, LIST_KINDS, type Keyboard } from '../../schema/types';
 	import { greekKeyboard } from '../../utils/keyboard';
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
@@ -11,17 +11,27 @@
 	import Icon from '../ui/Icon.svelte';
 	import MenuItem from '../ui/MenuItem.svelte';
 
-	type Props = { editor: EditorState; list: DraftList; keyboard: Keyboard; onpaste: () => void };
-	let { editor, list = $bindable(), keyboard, onpaste }: Props = $props();
+	type Props = {
+		editor: EditorState;
+		list: DraftList;
+		keyboard: Keyboard;
+		onpaste: () => void;
+		/** Only for lists of begrippen: opens the "kies onderdelen" screen to add more items. */
+		onconcepts?: () => void;
+	};
+	let { editor, list = $bindable(), keyboard, onpaste, onconcepts }: Props = $props();
 
 	// Tags and dimensions are for rijtjes only and stay hidden until asked for.
 	let advanced = $state(false);
-	const isVocab = $derived(list.kind === 'vocab');
+	// Words and begrippen are asked one at a time (no tags or stages), so they share the same editor.
+	const isVocab = $derived(isWordKind(list.kind));
+	const isConcept = $derived(list.kind === 'concept');
 	const showTags = $derived(advanced && !isVocab);
 
 	let dimensionName = $state('');
 	let dimensionError = $state('');
 	let dragId: string | null = $state(null);
+	let tipOpen = $state<string[]>([]);
 	let table: HTMLElement | undefined = $state();
 	let dimensionPanel: HTMLElement | undefined = $state();
 
@@ -29,7 +39,7 @@
 		const id = editor.addRow(list.id, rowId);
 		if (!id) return;
 		await tick();
-		table?.querySelector<HTMLInputElement>(`[data-row="${id}"] [data-field="prompt"]`)?.focus();
+		table?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-row="${id}"] [data-field="prompt"]`)?.focus();
 	}
 
 	function onCellKeydown(event: KeyboardEvent, rowId: string) {
@@ -83,10 +93,11 @@
 	<div class="flex items-end gap-3">
 		<label class="min-w-0 flex-1">
 			<span class="mb-1.5 block text-sm font-semibold text-text-muted">{isVocab ? 'Titel van de lijst' : 'Titel van het rijtje'}</span>
-			<input class="input" bind:value={list.title} placeholder={isVocab ? 'bijv. Hoofdstuk 3' : 'bijv. mensa (1e declinatie)'} />
+			<input class="input" bind:value={list.title} placeholder={isConcept ? 'bijv. Stijlfiguren voor het examen' : isVocab ? 'bijv. Hoofdstuk 3' : 'bijv. mensa (1e declinatie)'} />
 		</label>
 		<Dropdown label="Meer opties voor deze lijst" variant="ghost" size="sm" iconOnly align="right">
 			{#snippet trigger()}<Icon name="more" size={20} />{/snippet}
+			{#if isConcept && onconcepts}<MenuItem icon="plus" onclick={onconcepts}>Onderdelen kiezen uit de lijst</MenuItem>{/if}
 			<MenuItem icon="paste" onclick={onpaste}>Plak uit tekst</MenuItem>
 			{#if !isVocab}<MenuItem icon="tag" onclick={() => (advanced = !advanced)}>{advanced ? 'Tags verbergen' : 'Tags en dimensies tonen'}</MenuItem>{/if}
 			<MenuItem icon="trash" danger onclick={() => editor.removeList(list.id)}>Lijst verwijderen</MenuItem>
@@ -187,16 +198,30 @@
 				>
 					<Icon name="grip" size={20} />
 				</span>
-				<input
-					class="input"
-					data-field="prompt"
-					use:greekKeyboard={keyboard === 'greek'}
-					bind:value={row.prompt}
-					onkeydown={(e) => onCellKeydown(e, row.id)}
-					aria-label="{list.columns.prompt}, rij {index + 1}"
-					autocapitalize="none"
-					spellcheck="false"
-				/>
+				{#if isConcept}
+					<!-- An explanation or an example sentence is long: a textarea instead of a single line. -->
+					<textarea
+						class="input min-h-20"
+						data-field="prompt"
+						use:greekKeyboard={keyboard === 'greek'}
+						bind:value={row.prompt}
+						onkeydown={(e) => onCellKeydown(e, row.id)}
+						aria-label="{list.columns.prompt}, rij {index + 1}"
+						autocapitalize="none"
+						spellcheck="false"
+					></textarea>
+				{:else}
+					<input
+						class="input"
+						data-field="prompt"
+						use:greekKeyboard={keyboard === 'greek'}
+						bind:value={row.prompt}
+						onkeydown={(e) => onCellKeydown(e, row.id)}
+						aria-label="{list.columns.prompt}, rij {index + 1}"
+						autocapitalize="none"
+						spellcheck="false"
+					/>
+				{/if}
 				<div class="flex flex-col gap-1.5">
 					{#each row.answers as _, a (a)}
 						<div class="flex items-center gap-1.5">
@@ -223,10 +248,20 @@
 					<Button variant="ghost" size="sm" iconOnly aria-label="Extra goed antwoord toevoegen, rij {index + 1}" title="Extra goed antwoord" onclick={() => row.answers.push('')}>
 						<Icon name="plus" size={18} />
 					</Button>
+					<Button variant="ghost" size="sm" iconOnly aria-label="Uitleg of ezelsbruggetje, rij {index + 1}" title="Uitleg of ezelsbruggetje" aria-pressed={!!row.tip || tipOpen.includes(row.id)} onclick={() => (tipOpen = tipOpen.includes(row.id) ? tipOpen.filter((t) => t !== row.id) : [...tipOpen, row.id])}>
+						<Icon name="bulb" size={18} />
+					</Button>
 					<Button variant="ghost" size="sm" iconOnly aria-label="Rij {index + 1} verwijderen" title="Rij verwijderen" onclick={() => editor.removeRow(list.id, row.id)}>
 						<Icon name="trash" size={18} />
 					</Button>
 				</div>
+
+				{#if row.tip || tipOpen.includes(row.id)}
+					<label class="col-start-2 col-end-4 -mt-0.5 flex items-center gap-2 pb-1 text-xs font-semibold text-text-muted">
+						<Icon name="bulb" size={16} class="shrink-0" />
+						<input class="input h-9! min-w-0 flex-1 py-0! text-sm" value={row.tip ?? ''} oninput={(e) => (row.tip = e.currentTarget.value)} maxlength="240" placeholder="Uitleg of ezelsbruggetje (wordt getoond na een fout)" aria-label="Uitleg of ezelsbruggetje, rij {index + 1}" />
+					</label>
+				{/if}
 
 				{#if showTags && list.dimensions.length > 0}
 					<div class="col-start-2 col-end-4 -mt-0.5 flex flex-wrap gap-2 pb-1">

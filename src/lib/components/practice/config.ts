@@ -42,6 +42,12 @@ export const VOCAB_DIRECTION_OPTIONS: readonly { id: Direction; name: string }[]
 	{ id: 'both', name: 'Beide' }
 ];
 
+export const CONCEPT_DIRECTION_OPTIONS: readonly { id: Direction; name: string }[] = [
+	{ id: 'forward', name: 'Uitleg → term' },
+	{ id: 'reverse', name: 'Term → uitleg' },
+	{ id: 'both', name: 'Beide' }
+];
+
 export const STEP_BACK_OPTIONS: readonly Option<StepBack>[] = [
 	{ id: 'stage', name: 'Stap terug', text: 'Gaat een blok slecht, dan herhaal je eerst het vorige stadium.' },
 	{ id: 'row', name: 'Lastige vormen', text: 'Vormen die vaak fout gaan krijgen een extra oefenblok.' },

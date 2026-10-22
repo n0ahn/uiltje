@@ -3,7 +3,7 @@
 // `aiToStudySet` adds ids, defaults and settings, then runs the result through parseStudySet (RULES: validate at every boundary).
 import { z } from 'zod';
 import { parseStudySet } from './migrate';
-import { LIST_KINDS } from './types';
+import { isWordKind, LIST_KINDS } from './types';
 import type { StudySet } from './types';
 
 const str = z.string().default('');
@@ -97,6 +97,7 @@ const DEFAULT_COLUMNS: Record<(typeof LIST_KINDS)[number], { prompt: string; ans
 	declension: { prompt: 'Vorm', answer: 'Woord' },
 	conjugation: { prompt: 'Persoon', answer: 'Vorm' },
 	vocab: { prompt: 'Woord', answer: 'Vertaling' },
+	concept: { prompt: 'Uitleg of voorbeeld', answer: 'Term' },
 	custom: { prompt: 'Vorm', answer: 'Woord' }
 };
 
@@ -120,7 +121,7 @@ export function aiToStudySet(raw: unknown, options: { newId: () => string; subje
 					const answers = [...new Set(row.answers.map((a) => a.trim()).filter(Boolean))];
 					const tags: Record<string, string> = {};
 					for (const { name, value } of row.tags) if (name.trim() && value.trim()) tags[name.trim()] = value.trim();
-					return { id: options.newId(), prompt, answers, tags: list.kind === 'vocab' ? {} : tags };
+					return { id: options.newId(), prompt, answers, tags: isWordKind(list.kind) ? {} : tags };
 				})
 				.filter((row) => {
 					const keep = row.prompt !== '' && row.answers.length > 0;
@@ -129,7 +130,7 @@ export function aiToStudySet(raw: unknown, options: { newId: () => string; subje
 				});
 			const used = new Set(rows.flatMap((r) => Object.keys(r.tags)));
 			const dimensions =
-				list.kind === 'vocab' ? [] : [...new Set([...list.dimensions.map((d) => d.trim()).filter((d) => used.has(d)), ...used])];
+				isWordKind(list.kind) ? [] : [...new Set([...list.dimensions.map((d) => d.trim()).filter((d) => used.has(d)), ...used])];
 			const defaults = DEFAULT_COLUMNS[list.kind];
 			return {
 				id: options.newId(),

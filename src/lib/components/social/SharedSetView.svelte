@@ -17,7 +17,7 @@
 	type Props = {
 		load: () => Promise<SharedSet | null>;
 		/** Runs after the copy is saved (a set sent by a friend is marked as accepted). */
-		onadded?: () => Promise<void>;
+		onadded?: (copyId: string) => Promise<void>;
 		/** Where "Terug" goes when the set does not exist. */
 		backHref?: string;
 		signedIn: boolean;
@@ -45,7 +45,7 @@
 		try {
 			const copy = copyOfSet(shared.set, newId);
 			await getStorage().saveSet(copy);
-			await onadded?.().catch(() => undefined); // the copy is safe; marking the share is best effort
+			await onadded?.(copy.id).catch(() => undefined); // the copy is safe; marking the share is best effort
 			toasts.show(`"${copy.title}" staat nu in je sets`);
 			await goto(`/sets/${copy.id}`);
 		} catch (e) {

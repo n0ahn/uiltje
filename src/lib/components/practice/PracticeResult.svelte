@@ -8,6 +8,8 @@
 	import CountUp from '../ui/CountUp.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import Progressring from '../ui/Progressring.svelte';
+	import type { StudySet } from '../../schema/types';
+	import TipsPanel from './TipsPanel.svelte';
 
 	type Props = {
 		mode: 'learn' | 'test';
@@ -25,6 +27,10 @@
 		/** Learn mode: rows that went wrong at least once. */
 		troubleCount: number;
 		backHref: string;
+		/** The practised sets, for the explanations ("Uitleg bij je fouten"). */
+		sets: StudySet[];
+		/** Learn mode: row keys that went wrong at least once (test mode reads them from `test`). */
+		troubleKeys?: string[];
 		/** Same session again. */
 		onrestart: () => void;
 		/** Back to the start screen (new choices). */
@@ -32,10 +38,12 @@
 		/** Only the mistakes (learn) or a retest of the wrong forms (test). */
 		onretry: () => void;
 	};
-	let { mode, test, totals, grade, celebrate, durationSeconds, timedOut, showGrade, troubleCount, backHref, onrestart, onchange, onretry }: Props = $props();
+	let { mode, test, totals, grade, celebrate, durationSeconds, timedOut, showGrade, troubleCount, backHref, sets, troubleKeys = [], onrestart, onchange, onretry }: Props = $props();
 
 	const percent = $derived(test ? Math.round(test.score * 100) : 100);
 	const passed = $derived(celebrate);
+	const tipKeys = $derived(mode === 'test' && test ? [...new Set(test.wrong.map((w) => w.rowKey))] : troubleKeys);
+	const tipGiven = $derived(Object.fromEntries((test?.wrong ?? []).map((w) => [w.rowKey, w.given])));
 </script>
 
 {#if celebrate}<Confetti />{/if}
@@ -95,6 +103,8 @@
 			<p><span class="block font-heading text-2xl font-semibold">{totals.assisted}</span><span class="text-sm text-text-muted">met hint</span></p>
 		</Card>
 	{/if}
+
+	<TipsPanel {sets} keys={tipKeys} given={tipGiven} />
 
 	<div class="flex flex-wrap justify-center gap-3">
 		{#if mode === 'test' && test && test.wrong.length > 0}

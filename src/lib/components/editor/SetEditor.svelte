@@ -5,8 +5,11 @@
 	import { goto } from '$app/navigation';
 	import { clearDraft, loadDraft, saveDraft } from '../../editor/draft';
 	import { toDraft } from '../../editor/json';
+	import type { DraftSet } from '../../editor/types';
 	import { EditorState, emptyDraft } from '../../editor/state.svelte';
-	import { TEMPLATE_CATEGORIES, type TemplateId } from '../../editor/templates';
+	import { CATALOGUE_TEMPLATES, TEMPLATE_CATEGORIES, type TemplateId } from '../../editor/templates';
+	import type { PickerGroupId } from '../../grammar/picker';
+	import type { ConceptRow } from '../../grammar/rows';
 	import { getSocial } from '../../social';
 	import { auth } from '../../state/auth.svelte';
 	import { toasts } from '../../state/toast.svelte';
@@ -20,9 +23,12 @@
 	import Modal from '../ui/Modal.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import Segmented from '../ui/Segmented.svelte';
+	import AiEditModal from './AiEditModal.svelte';
+	import CataloguePicker from './CataloguePicker.svelte';
 	import JsonModal from './JsonModal.svelte';
 	import ListEditor from './ListEditor.svelte';
 	import PasteModal from './PasteModal.svelte';
+	import SuggestionModal from './SuggestionModal.svelte';
 
 	/** null = new set. */
 	type Props = { setId: string | null };
@@ -60,6 +66,14 @@
 	] as const;
 
 	let pickerOpen = $state(false);
+	// "Kies onderdelen" (stijlfiguren, grammatica): adds a new list, or rows to the list given in `catalogueListId`.
+	let catalogueOpen = $state(false);
+	let catalogueGroup = $state<PickerGroupId>('stijl');
+	let catalogueListId = $state<string | null>(null);
+	let suggestOpen = $state(false);
+	// "Aanpassen met AI" (accounts only): the set as it was before the last applied AI changes, for "Ongedaan maken".
+	let aiEditOpen = $state(false);
+	let aiUndo = $state<{ before: DraftSet; count: number } | null>(null);
 	let pasteOpen = $state(false);
 	let pasteListId = $state('');
 	let jsonOpen = $state(false);
@@ -189,9 +203,38 @@
 	});
 
 	function addList(template: TemplateId) {
-		activeId = editor?.addList(template) ?? null;
 		pickerOpen = false;
+		if (CATALOGUE_TEMPLATES.includes(template)) {
+			catalogueGroup = template === 'grammatica' ? 'grammatica' : 'stijl';
+			catalogueListId = null;
+			catalogueOpen = true;
+			return;
+		}
+		activeId = editor?.addList(template) ?? null;
 	}
+
+	function openCatalogue(list: { id: string; title: string }) {
+		catalogueGroup = /gramm/i.test(list.title) ? 'grammatica' : 'stijl';
+		catalogueListId = list.id;
+		catalogueOpen = true;
+	}
+
+	function onCataloguePicked(rows: ConceptRow[], title: string) {
+		if (!editor) return;
+		if (catalogueListId && editor.list(catalogueListId)) {
+			const added = editor.appendConceptRows(catalogueListId, rows);
+			toasts.show(added === 0 ? 'Alles stond al in de lijst' : `${added} ${added === 1 ? 'vraag' : 'vragen'} toegevoegd`);
+			activeId = catalogueListId;
+		} else {
+			activeId = editor.addConceptList(title, rows);
+			toasts.show(`${rows.length} ${rows.length === 1 ? 'vraag' : 'vragen'} toegevoegd`);
+		}
+	}
+
+	/** Refs of the catalogue items already in the list we are adding to. */
+	const existingRefs = $derived(
+		catalogueListId ? [...new Set((editor?.list(catalogueListId)?.rows ?? []).flatMap((r) => (r.ref ? [r.ref] : [])))] : []
+	);
 
 	function openPaste(listId: string) {
 		pasteListId = listId;
@@ -200,6 +243,7 @@
 
 	function onImport(set: NonNullable<typeof current>) {
 		if (!editor) return;
+		aiUndo = null;
 		editor.replace({ ...toDraft(set), id: editor.set.id });
 		toasts.show('Geïmporteerd');
 	}
@@ -257,6 +301,7 @@
 			</span>
 			<Dropdown label="Meer acties" variant="ghost" size="sm" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={20} />{/snippet}
+				{#if auth.user}<MenuItem icon="sparkles" onclick={() => (aiEditOpen = true)}>Aanpassen met AI…</MenuItem>{/if}
 				<MenuItem icon="code" onclick={() => { jsonTab = 'export'; jsonOpen = true; }}>JSON bekijken of kopiëren</MenuItem>
 				<MenuItem icon="import" onclick={() => { jsonTab = 'import'; jsonOpen = true; }}>Importeren uit JSON</MenuItem>
 			</Dropdown>
@@ -267,6 +312,15 @@
 			<div class="rounded-card border border-border bg-surface p-4" role="alert">
 				<p class="mb-1 font-semibold text-rose-edge">Dit moet nog even aangepast worden:</p>
 				<ul class="list-disc pl-5 text-sm">{#each issues as issue (issue)}<li>{issue}</li>{/each}</ul>
+			</div>
+		{/if}
+
+		{#if aiUndo}
+			<div class="flex flex-wrap items-center gap-3 rounded-card border border-border bg-surface p-3" role="status">
+				<Icon name="sparkles" size={18} />
+				<p class="min-w-0 flex-1 font-semibold">{aiUndo.count} {aiUndo.count === 1 ? 'wijziging' : 'wijzigingen'} van de AI toegepast.</p>
+				<Button variant="secondary" size="sm" onclick={() => { if (aiUndo) editor?.replace(aiUndo.before); aiUndo = null; }}>Ongedaan maken</Button>
+				<Button variant="ghost" size="sm" iconOnly aria-label="Melding sluiten" onclick={() => (aiUndo = null)}><Icon name="x" size={16} /></Button>
 			</div>
 		{/if}
 
@@ -344,12 +398,15 @@
 							</li>
 						{/each}
 					</ul>
-					<div><Button variant="secondary" size="sm" onclick={() => (pickerOpen = true)}><Icon name="plus" size={16} /> Lijst toevoegen</Button></div>
+					<div class="flex flex-wrap gap-2">
+						<Button variant="secondary" size="sm" onclick={() => (pickerOpen = true)}><Icon name="plus" size={16} /> Lijst toevoegen</Button>
+						{#if auth.user}<Button variant="secondary" size="sm" onclick={() => (aiEditOpen = true)}><Icon name="sparkles" size={16} /> Aanpassen met AI</Button>{/if}
+					</div>
 				</nav>
 
 				{#each editor.set.lists as list, i (list.id)}
 					{#if list.id === active?.id}
-						<ListEditor {editor} keyboard={editor.set.settings.keyboard} bind:list={editor.set.lists[i]} onpaste={() => openPaste(list.id)} />
+						<ListEditor {editor} keyboard={editor.set.settings.keyboard} bind:list={editor.set.lists[i]} onpaste={() => openPaste(list.id)} onconcepts={() => openCatalogue(list)} />
 					{/if}
 				{/each}
 			</div>
@@ -357,6 +414,17 @@
 	</div>
 
 	<Modal bind:open={pickerOpen} title="Lijst toevoegen">{@render picker()}</Modal>
+	<CataloguePicker
+		bind:open={catalogueOpen}
+		subject={editor.set.subject}
+		initialGroup={catalogueGroup}
+		{existingRefs}
+		appending={catalogueListId !== null}
+		onadd={onCataloguePicked}
+		onsuggest={() => (suggestOpen = true)}
+	/>
+	<SuggestionModal bind:open={suggestOpen} subject={editor.set.subject} />
+	<AiEditModal bind:open={aiEditOpen} {editor} activeListId={activeId} onapplied={(before, count) => (aiUndo = { before, count })} />
 	<PasteModal bind:open={pasteOpen} onadd={(rows) => editor?.addPasted(pasteListId, rows)} />
 	<JsonModal bind:open={jsonOpen} {current} startTab={jsonTab} onimport={onImport} />
 {/if}

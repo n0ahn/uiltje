@@ -295,8 +295,8 @@ const syntaxis: GrammarSection = {
 			parts: ['lijdend voorwerp (object)', 'onderwerp en naamwoordelijk deel van het gezegde in de a.c.i. en a.c.p.', 'bijwoordelijke bepaling van richting, tijdsduur, afstand en betrekking']
 		}),
 		item('s-vocativus', 'vocativus', 'De aanspreekvorm.'),
-		item('s-voorzetsels', 'voorzetsels', 'Het gebruik van de naamvallen bij voorzetsels.'),
-		item('s-bijvoeglijk', 'bijvoeglijke naamwoorden: gebruik', 'Bijvoeglijk en zelfstandig gebruik.'),
+		item('s-voorzetsels', 'voorzetsels', 'Het gebruik van de naamvallen bij voorzetsels.', { topic: true }),
+		item('s-bijvoeglijk', 'bijvoeglijke naamwoorden: gebruik', 'Bijvoeglijk en zelfstandig gebruik.', { topic: true }),
 		item('s-trappen', 'trappen van vergelijking: gebruik', 'Gebruik en betekenis van de vergrotende en overtreffende trap.', {
 			parts: ['vergrotende trap, ook met de betekenissen "tamelijk" en "te"', 'overtreffende trap: "-ste" en "zeer"', 'ὡς en ὅτι + overtreffende trap: "zo … mogelijk"']
 		}),

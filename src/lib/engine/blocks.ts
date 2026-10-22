@@ -3,6 +3,7 @@
 // Order: list by list; within a list the ladder from stages.ts (e.g. enkelvoud, meervoud, everything shuffled).
 // Two ways: 'forward' (see the prompt "ev nom", type the form) and 'reverse' (see the form, type the prompt).
 // Pure TS state machine, no UI.
+import { isWordKind } from '../schema/types';
 import { checkAnswer } from './checker';
 import { buildHint } from './hints';
 import type { Hint } from './hints';
@@ -83,7 +84,7 @@ export function buildBlocks(rows: readonly PracticeRow[], options: BlockOptions)
 			const final = stage.path.length === 0;
 			// Only the complete block is shuffled, so the table order is not learned by heart.
 			// A vocab list has no stages but is shuffled as well: the order of a word list is not meaningful.
-			const shuffleFinal = final && (ladder.length > 1 || options.flat === true || listRows[0]?.listKind === 'vocab');
+			const shuffleFinal = final && (ladder.length > 1 || options.flat === true || (listRows[0] ? isWordKind(listRows[0].listKind) : false));
 			const label = options.flat ? 'Lastige vormen' : stageLabel(stage, ladder.length === 1);
 			for (const way of ways) {
 				const keys = shuffleFinal ? shuffle(stage.rowKeys, rng) : [...stage.rowKeys];

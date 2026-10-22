@@ -1,7 +1,7 @@
 // zod schemas for what the social RPCs return (validate at every boundary), plus the mapping to app types.
 import { z } from 'zod';
 import { StorageError } from '../storage/adapter';
-import type { FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, ProfileView, Relation } from './types';
+import type { Challenge, ChallengeScore, FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, ProfileView, Relation } from './types';
 
 const nullableText = z.string().nullable();
 const time = z.string().nullable();
@@ -52,6 +52,29 @@ export const incomingRow = z.object({
 	sender_avatar_updated_at: time,
 	created_at: z.string()
 });
+const score = z.union([z.null(), z.coerce.number()]);
+export const challengeRow = z.object({
+	challenge_id: z.string(),
+	set_title: z.string(),
+	subject: z.string(),
+	row_count: count,
+	i_am_challenger: z.boolean(),
+	status: z.enum(['pending', 'accepted', 'declined']),
+	created_at: z.string(),
+	other_id: z.string(),
+	other_name: z.string(),
+	other_username: z.string(),
+	other_avatar_path: nullableText,
+	other_avatar_updated_at: time,
+	my_set_id: nullableText,
+	my_score: score,
+	my_grade: score,
+	my_at: time,
+	their_score: score,
+	their_grade: score,
+	their_at: time
+});
+
 export const sharedRow = z.object({
 	set_id: z.string(),
 	title: z.string(),
@@ -168,5 +191,25 @@ export function toProfileView(url: AvatarUrl, r: z.infer<typeof profileViewRow>)
 			isPublic: s.is_public,
 			updatedAt: Date.parse(s.updated_at) || 0
 		}))
+	};
+}
+
+function toScore(value: number | null, grade: number | null, at: string | null): ChallengeScore | null {
+	return value === null ? null : { score: value, grade, at: at ? Date.parse(at) : 0 };
+}
+
+export function toChallenge(url: AvatarUrl, r: z.infer<typeof challengeRow>): Challenge {
+	return {
+		id: r.challenge_id,
+		title: r.set_title,
+		subject: r.subject,
+		rowCount: r.row_count,
+		iAmChallenger: r.i_am_challenger,
+		status: r.status,
+		createdAt: Date.parse(r.created_at),
+		other: toPerson(url, r.other_id, r.other_username, r.other_name, r.other_avatar_path, r.other_avatar_updated_at),
+		mySetId: r.my_set_id,
+		me: toScore(r.my_score, r.my_grade, r.my_at),
+		them: toScore(r.their_score, r.their_grade, r.their_at)
 	};
 }

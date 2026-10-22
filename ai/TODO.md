@@ -90,19 +90,20 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] OCR step (Gemini vision, same call as structuring), server route `/api/ai/import`, Gemini with retry + model fallback (`lib/server/ai/`)
 - [x] Preview/edit screen (always): `/sets/ai`, reuses `ListEditor`, nothing saved until Opslaan; "Open in de volledige editor" hands over as concept
 - [x] Entry points: "Met AI" on `/sets`, link in the empty editor
-- [x] Third source "Document" (PDF -> Gemini inline, DOCX -> text extracted in the browser), next to Foto's and Tekst
-- [x] Add AI results to an existing set (`?to=<id>` from the set menu, or "Opslaan in" on `/sets/ai`): new lists appended, same title+kind merged without duplicate prompts
-- [ ] Try adding to a set with real photos (same list title merges, new title makes a new list)
-- [ ] Try Document with a real PDF (typed + scanned) and a real DOCX (table + plain lines)
 - [ ] Set `GEMINI_API_KEY` (+ `GEMINI_MODELS`) in `.env` and on Vercel, then try it with real photos (Latin table, Greek table, vocab list) and fix what the real model does
 - [ ] Phone check: camera input, thumbnails, review screen on 390px
 
-## Phase 9 — Generated questions (PLAN §9)
+## Phase 9 — Stijlfiguren & grammatica (PLAN §9)
 - [x] Verified grammar catalogues from the CvTE syllabi 2027 (`lib/grammar/`): Latin 84 items + 120 stamtijden, Greek 107 items (incl. Ionisch of Herodotus, Homerus, tragedie)
-- [x] Correctness strategy agreed: owner approves every question at first, others maybe later (NOTES "Phase 9 correctness strategy")
-- [ ] Question format in the schema (new list template, schema v4 + migration) and a render in the practice runners
-- [ ] Generation route (server, Gemini, pre-generated per catalogue item) + approval screen (owner only; data model must allow more approvers later)
-- [ ] Stijlfiguren question template first (smallest, clearest answers), then grammar (syntaxis), then vormleer
+- [x] Correctness strategy agreed: owner approves every generated question at first, others maybe later
+- [x] Schema v4: list kind `concept` (explanation or example -> term) and optional row `ref`; migration 3 -> 4; practice uses the existing word engine (multiple choice AND typed, no new runner)
+- [x] "Stijlfiguren" and "Grammatica" templates: `CataloguePicker` (tick items from the syllabus, or add your own with explanation), rows built from the syllabus text (no AI)
+- [x] Suggestions: "Stel een regel voor" (`SuggestionModal`), `/suggesties` (own suggestions; owner accepts/rejects), accepted ones appear for everyone in the picker. SQL: `ai/sql/004_grammar_suggestions.sql`
+- [ ] Run 004 in Supabase and make yourself owner (`insert into public.app_admins ...`), then try it: picker, suggestion, accept, see it in the picker with a second account
+- [ ] Phone check of the picker modal (long list, search, footer) and the concept row editor
+- [ ] Generated example sentences per catalogue item (Gemini, schema-constrained, second check pass) + approval screen for the owner, stored as text, never generated while the user waits
+- [ ] Owner can edit a suggestion before accepting (now only accept/reject)
+- [ ] Vormleer items as rijtjes templates (aorist/perfect/futurum lists, stamtijden) instead of definition questions
 
 ## Phase 10 — Default lists
 - [ ] Curated library, add-to-my-sets
@@ -123,3 +124,25 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 ## Greek keyboard
 - [x] Per-set keyboard setting (schema v3), `toGreek`, `greekKeyboard` action, editor + practice inputs
 - [ ] Try it in the browser (editor, learn, test, cards); decide if pasted text / reverse vocab direction need another rule
+
+## Sets ordenen, import, AI-aanpassen, uitleg, uitdagingen (2026-10-22)
+- [x] Quizlet/StudyGo import (`CardImportModal`, `editor/cards.ts`): paste or .txt/.csv, auto-detected separators, new vocab set
+- [x] `/sets` organising: folder filter, grouped by folder, "Ordenen" mode with bulk move to folder and bulk delete
+- [x] "Aanpassen met AI" in the editor (⋮ menu and list nav): instruction -> proposals -> tick what to apply -> "Ongedaan maken"
+- [x] Optional row field `tip` (schema, editor input with the bulb button, set page); "Uitleg bij je fouten" on the result screen (AI proposals, saved on confirm)
+- [x] Challenges: `ai/sql/005_challenges.sql`, "Vriend uitdagen…" on the set page, `/uitdagingen`, `/uitdaging/[id]`, bell notification
+- [ ] Run `ai/sql/005_challenges.sql` in the Supabase SQL editor
+- [ ] Try in the real app: Quizlet export, bulk move/delete, AI edit on a real set, tips after a test, a challenge between two accounts
+- [ ] Show the tip right after a wrong answer inside the runners (now only on the result screen, set page and editor)
+
+## AI automodus, import-menu, set page (2026-10-22, evening)
+- [x] AI auto mode on `/sets/ai` ("Beschrijven", the default source): a short prompt makes a set, same review screen, optional "add to existing set"
+- [x] All user-facing text about Gemini, the free quota and "AI-import" removed (login gate, review note, privacy line, edit modal, error messages)
+- [x] PDF and "existing lists" were sent by the browser but ignored by the server: now passed on to the model
+- [x] `/sets`: one "Importeren" menu (Quizlet/StudyGo, photo/document with AI, JSON), each text import opens a dialog on the same page (no navigation, which caused the colour flash); dashboard and palette links open it via `/sets?import=cards|json`
+- [x] `/sets` organising: search, group by folder or subject, sort (recent/name), per-card ⋮ menu (edit, to folder, delete), select all in a group
+- [x] `/sets/[id]`: lists with long text (concept lists, long definitions) take the full width, short lists stay in two columns; concept lists show term first
+- [x] `/sets/[id]`: "Termen kiezen" to tick single terms and practise only those (all practice modes, via `?selection=1`)
+- [x] `/sets/[id]`: group by "Op beheersing" (Lastig, Bezig, Nog niet geoefend, Onder de knie) with "Oefen deze" per group
+- [ ] Try in the real app: auto mode with a few prompts (stijlfiguren, declension, vocab), import menu on phone, selection practice in learn/test/flashcards, grouping with real progress
+- [ ] Remember the chosen grouping and the pick across visits (now: per visit, selection per tab)

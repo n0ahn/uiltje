@@ -17,7 +17,9 @@ export const StudyRowSchema = z.object({
 	id,
 	prompt: z.string().min(1),
 	answers: z.array(z.string().min(1)).min(1),
-	tags: z.record(z.string(), z.string())
+	tags: z.record(z.string(), z.string()),
+	ref: z.string().min(1).optional(),
+	tip: z.string().min(1).optional()
 });
 
 export const StudyListSchema = z.object({

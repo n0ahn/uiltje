@@ -28,6 +28,8 @@ export type GrammarItem = {
 	examYear?: number;
 	/** Syllabus says explicitly this is NOT assumed known. */
 	notRequired?: boolean;
+	/** A syllabus topic without a definition of its own ("het gebruik van de naamvallen bij voorzetsels"): no good question, so the picker does not offer it. */
+	topic?: boolean;
 };
 
 export type GrammarSection = {

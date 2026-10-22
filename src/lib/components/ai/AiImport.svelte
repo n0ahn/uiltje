@@ -10,6 +10,7 @@
 	import { toDraft } from '../../editor/json';
 	import { EditorState } from '../../editor/state.svelte';
 	import { auth } from '../../state/auth.svelte';
+	import { settings } from '../../state/settings.svelte';
 	import { toasts } from '../../state/toast.svelte';
 	import { getStorage } from '../../storage';
 	import { StorageError, type SetSummary } from '../../storage/adapter';
@@ -29,14 +30,18 @@
 	const storage = getStorage();
 	const SUBJECTS = ['Latijn', 'Grieks', 'Nederlands', 'Engels', 'Frans', 'Duits'];
 	const SOURCES = [
+		{ id: 'prompt', name: 'Beschrijven', text: 'Typ in een paar woorden welke set je wilt. De AI maakt hem voor je.' },
 		{ id: 'document', name: 'Document', text: 'Kies een PDF of Word-bestand (.docx) met je rijtjes of woordenlijst.' },
 		{ id: 'photos', name: 'Foto\'s', text: 'Maak een foto van je boek of schrift, of kies foto\'s uit je galerij.' },
 		{ id: 'text', name: 'Tekst', text: 'Plak tekst die je ergens vandaan hebt gekopieerd.' }
 	] as const;
+	type Source = (typeof SOURCES)[number]['id'];
+	const EXAMPLES = ['Latijnse stijlfiguren voor het eindexamen', 'De naamvallen van de eerste declinatie (mensa)', 'Onregelmatige Engelse werkwoorden', '40 veelvoorkomende Griekse woorden'];
 
 	type Step = 'input' | 'working' | 'review';
 	let step = $state<Step>('input');
-	let source = $state<'document' | 'photos' | 'text'>('photos');
+	let source = $state<Source>('prompt');
+	let prompt = $state('');
 	let doc = $state<PreparedDocument | null>(null);
 	// Adding to an existing set: '' means a new set.
 	let targetId = $state('');
@@ -59,11 +64,12 @@
 	let pasteOpen = $state(false);
 	let abort: AbortController | null = null;
 
-	const hasInput = $derived(source === 'photos' ? images.length > 0 : source === 'document' ? doc !== null : text.trim() !== '');
+	const hasInput = $derived(source === 'prompt' ? prompt.trim() !== '' : source === 'photos' ? images.length > 0 : source === 'document' ? doc !== null : text.trim() !== '');
 	const sourceLabel = $derived(source === 'photos' ? (images.length === 1 ? 'foto' : 'foto\'s') : source === 'document' ? 'document' : 'tekst');
 	const active = $derived(editor?.set.lists.find((l) => l.id === activeId) ?? editor?.set.lists[0] ?? null);
 	const rowTotal = $derived(editor?.set.lists.reduce((sum, l) => sum + l.rows.length, 0) ?? 0);
 
+	const targetName = $derived(setOptions.find((s) => s.id === targetId)?.title ?? '');
 	const plan = $derived(target && editor ? planMerge(target, editor.set.lists) : []);
 	const planAdded = $derived(plan.reduce((sum, item) => sum + item.added, 0));
 	const planSkipped = $derived(plan.reduce((sum, item) => sum + item.skipped, 0));
@@ -71,6 +77,8 @@
 	onMount(async () => {
 		try {
 			setOptions = await storage.listSets();
+			const from = page.url.searchParams.get('source');
+			if (SOURCES.some((o) => o.id === from)) source = from as Source;
 			const wanted = page.url.searchParams.get('to');
 			if (wanted && setOptions.some((s) => s.id === wanted)) targetId = wanted;
 		} catch {
@@ -130,8 +138,9 @@
 		event.preventDefault();
 		dragging = false;
 		const files = event.dataTransfer?.files;
-		if (!files?.length) return;
-		if (source === 'document') void addDocument(files[0]);
+		const first = files?.[0];
+		if (!files || !first) return;
+		if (source === 'document') void addDocument(first);
 		else void addFiles(files);
 	}
 
@@ -148,7 +157,7 @@
 		}
 		step = 'working';
 		abort = new AbortController();
-		const outcome = await requestAiImport({ existing: target?.lists.map((l) => l.title.trim()).filter(Boolean) ?? [],  text: source === 'text' ? text : source === 'document' && doc?.kind === 'docx' ? doc.text : '', images: source === 'photos' ? images : [], pdfs: source === 'document' && doc?.kind === 'pdf' ? [{ data: doc.data }] : [], subject: subject || target?.subject || '', note }, abort.signal);
+		const outcome = await requestAiImport({ existing: target?.lists.map((l) => l.title.trim()).filter(Boolean) ?? [],  prompt: source === 'prompt' ? prompt : '', level: source === 'prompt' ? settings.value.level : '', text: source === 'text' ? text : source === 'document' && doc?.kind === 'docx' ? doc.text : '', images: source === 'photos' ? images : [], pdfs: source === 'document' && doc?.kind === 'pdf' ? [{ data: doc.data }] : [], subject: subject || target?.subject || '', note: source === 'prompt' ? '' : note }, abort.signal);
 		abort = null;
 		if (!outcome.ok) {
 			step = 'input';
@@ -210,13 +219,13 @@
 	}
 </script>
 
-<svelte:head><title>Maken met AI · Uiltje</title></svelte:head>
+<svelte:head><title>{targetId ? 'Set aanvullen met AI' : 'Maken met AI'} · Uiltje</title></svelte:head>
 
 {#if !auth.user}
 	<div class="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
 		<Owl pose="idle" size={96} bob />
-		<h1 class="font-heading text-2xl font-semibold">Log in om de AI te gebruiken</h1>
-		<p class="text-text-muted">De AI-import is er voor accounts, zodat de gratis limiet eerlijk verdeeld blijft. Je sets blijven gewoon van jou.</p>
+		<h1 class="font-heading text-2xl font-semibold">Log in om sets met AI te maken</h1>
+		<p class="text-text-muted">Met een account laat je de AI een set maken uit een korte beschrijving, een foto of een document.</p>
 		<Button href="/login?next=/sets/ai"><Icon name="log-in" size={18} /> Inloggen</Button>
 	</div>
 {:else if step === 'working'}
@@ -224,7 +233,7 @@
 		<div class="flex items-center gap-4">
 			<Owl pose="thinking" size={64} />
 			<div class="min-w-0 flex-1" role="status" aria-live="polite">
-				<h1 class="font-heading text-2xl font-semibold">Uiltje leest je {sourceLabel}…</h1>
+				<h1 class="font-heading text-2xl font-semibold">{source === 'prompt' ? 'Uiltje maakt je set…' : `Uiltje leest je ${sourceLabel}…`}</h1>
 				<p class="text-text-muted">Dit duurt meestal 10 tot 30 seconden.</p>
 			</div>
 			<Button variant="ghost" onclick={cancel}>Annuleren</Button>
@@ -235,13 +244,13 @@
 	<div class="flex flex-col gap-5">
 		<div class="sticky top-0 z-20 -mx-4 flex items-center gap-3 bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8">
 			<Button variant="ghost" size="sm" iconOnly aria-label="Opnieuw beginnen" onclick={backToInput}><Icon name="arrow-left" size={20} /></Button>
-			<h1 class="min-w-0 flex-1 truncate font-heading text-xl font-semibold sm:text-2xl">Controleer je set</h1>
+			<h1 class="min-w-0 flex-1 truncate font-heading text-xl font-semibold sm:text-2xl">{target ? 'Controleer wat erbij komt' : 'Controleer je set'}</h1>
 			<Dropdown label="Meer acties" variant="ghost" size="sm" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={20} />{/snippet}
 				<MenuItem icon="pencil" onclick={openInEditor}>Open in de volledige editor</MenuItem>
 				<MenuItem icon="repeat" onclick={backToInput}>Opnieuw proberen</MenuItem>
 			</Dropdown>
-			<Button onclick={save} disabled={saving} class="min-w-32"><Icon name="check" size={18} /> {saving ? 'Opslaan…' : 'Opslaan'}</Button>
+			<Button onclick={save} disabled={saving} class="min-w-32"><Icon name="check" size={18} /> {saving ? (target ? 'Toevoegen…' : 'Opslaan…') : target ? 'Toevoegen' : 'Opslaan'}</Button>
 		</div>
 
 		<Card class="flex items-start gap-3">
@@ -249,9 +258,9 @@
 			<div class="min-w-0">
 				<p class="font-heading text-lg font-semibold">{rowTotal} {rowTotal === 1 ? 'rij' : 'rijen'} in {editor.set.lists.length} {editor.set.lists.length === 1 ? 'lijst' : 'lijsten'} gevonden</p>
 				{#if target}
-					<p class="mt-1 font-semibold">Wordt toegevoegd aan "{target.title}": {planAdded} {planAdded === 1 ? 'nieuwe rij' : 'nieuwe rijen'}{planSkipped > 0 ? `, ${planSkipped} ${planSkipped === 1 ? 'staat' : 'staan'} er al en ${planSkipped === 1 ? 'wordt' : 'worden'} overgeslagen` : ''}.</p>
+					<p class="mt-1 font-semibold">Wordt toegevoegd aan de bestaande set "{target.title}": {planAdded} {planAdded === 1 ? 'nieuwe rij' : 'nieuwe rijen'}{planSkipped > 0 ? `, ${planSkipped} ${planSkipped === 1 ? 'staat' : 'staan'} er al en ${planSkipped === 1 ? 'wordt' : 'worden'} overgeslagen` : ''}.</p>
 				{/if}
-				<p class="text-text-muted">De AI maakt weleens fouten, vooral bij accenten en kleine lettertjes. Loop alles even na voordat je opslaat; er is nog niets bewaard.</p>
+				<p class="text-text-muted">Loop alles even na en pas aan wat niet klopt. Er is nog niets bewaard.</p>
 				{#if notes.length > 0}
 					<ul class="mt-2 list-disc pl-5 text-sm">{#each notes as note (note)}<li>{note}</li>{/each}</ul>
 				{/if}
@@ -320,15 +329,32 @@
 		<div class="flex items-center gap-4">
 			<Owl pose="idle" size={64} />
 			<div>
-				<h1 class="font-heading text-3xl font-semibold">Maken met AI</h1>
-				<p class="text-text-muted">Document, foto of tekst erin, een set eruit. Je controleert alles voordat het wordt opgeslagen.</p>
+				{#if targetId}
+					<h1 class="font-heading text-3xl font-semibold">Set aanvullen met AI</h1>
+					<p class="text-text-muted">Je vult <strong class="text-text">{targetName}</strong> aan. Er komt geen nieuwe set; bestaande rijen blijven staan. Je controleert alles voordat het wordt toegevoegd.</p>
+				{:else}
+					<h1 class="font-heading text-3xl font-semibold">Maken met AI</h1>
+					<p class="text-text-muted">Beschrijf je set, of gebruik een document, foto of tekst. Je controleert alles voordat het wordt opgeslagen.</p>
+				{/if}
 			</div>
 		</div>
 
 		<Card class="flex flex-col gap-5">
 			<Segmented legend="Waaruit wil je een set maken?" options={SOURCES} bind:value={source} />
 
-			{#if source === 'document'}
+			{#if source === 'prompt'}
+				<div class="flex flex-col gap-3">
+					<label>
+						<span class="mb-1.5 block text-sm font-semibold text-text-muted">Wat voor set wil je?</span>
+						<textarea class="input min-h-32" bind:value={prompt} maxlength="1000" placeholder="bijv. Latijnse stijlfiguren voor het eindexamen, met een korte uitleg per figuur"></textarea>
+					</label>
+					<div class="flex flex-wrap gap-2" role="group" aria-label="Voorbeelden">
+						{#each EXAMPLES as example (example)}
+							<Button variant="secondary" size="sm" onclick={() => (prompt = example)}>{example}</Button>
+						{/each}
+					</div>
+				</div>
+			{:else if source === 'document'}
 				<div>
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<label
@@ -385,13 +411,13 @@
 
 			{#if loadingSets || setOptions.length > 0}
 				<label class="block">
-					<span class="mb-1.5 block text-sm font-semibold text-text-muted">Opslaan in</span>
+					<span class="mb-1.5 block text-sm font-semibold text-text-muted">Wat wil je doen?</span>
 					{#if loadingSets}
 						<Skeleton class="h-11 w-full" />
 					{:else}
 						<select class="input" bind:value={targetId}>
-							<option value="">Een nieuwe set</option>
-							{#each setOptions as s (s.id)}<option value={s.id}>Toevoegen aan: {s.title}{s.subject ? ` · ${s.subject}` : ''}</option>{/each}
+							<option value="">Een nieuwe set maken</option>
+							{#each setOptions as s (s.id)}<option value={s.id}>Bestaande set aanvullen: {s.title}{s.subject ? ` · ${s.subject}` : ''}</option>{/each}
 						</select>
 					{/if}
 				</label>
@@ -403,17 +429,18 @@
 					<input class="input" bind:value={subject} list="ai-subjects-input" placeholder="De AI raadt het anders zelf" />
 					<datalist id="ai-subjects-input">{#each SUBJECTS as s (s)}<option value={s}></option>{/each}</datalist>
 				</label>
-				<label>
-					<span class="mb-1.5 block text-sm font-semibold text-text-muted">Extra uitleg (optioneel)</span>
-					<input class="input" bind:value={note} maxlength="500" placeholder="bijv. alleen de rijtjes op bladzijde 12" />
-				</label>
+				{#if source !== 'prompt'}
+					<label>
+						<span class="mb-1.5 block text-sm font-semibold text-text-muted">Extra uitleg (optioneel)</span>
+						<input class="input" bind:value={note} maxlength="500" placeholder="bijv. alleen de rijtjes op bladzijde 12" />
+					</label>
+				{/if}
 			</div>
 
 			<div class="flex flex-wrap items-center gap-3">
-				<Button onclick={start} disabled={!hasInput || preparing} class="min-w-40"><Icon name="sparkles" size={18} /> {targetId ? 'Lees en voeg toe' : 'Maak set'}</Button>
+				<Button onclick={start} disabled={!hasInput || preparing} class="min-w-40"><Icon name="sparkles" size={18} /> {targetId ? (source === 'prompt' ? 'Maak en vul aan' : 'Lees en vul aan') : 'Maak set'}</Button>
 				<p class="min-h-6 min-w-0 flex-1 text-sm font-semibold text-rose-edge" role="alert">{problem}</p>
 			</div>
-			<p class="text-sm text-text-muted">Je foto's, documenten en tekst worden naar Google Gemini gestuurd om te lezen en niet door Uiltje bewaard. Gebruik dus niets met persoonlijke gegevens.</p>
 		</Card>
 	</div>
 {/if}

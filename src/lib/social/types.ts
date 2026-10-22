@@ -68,6 +68,25 @@ export type ProfileView = Person & {
 	sets: ProfileSet[];
 };
 
+/** Best finished test on the challenged set, taken after the challenge was sent. `score` is 0..1. */
+export type ChallengeScore = { score: number; grade: number | null; at: number };
+
+/** A set challenge between you and a friend. `me` and `them` stay null until the friend accepted and someone took a test. */
+export type Challenge = {
+	id: string;
+	title: string;
+	subject: string;
+	rowCount: number;
+	iAmChallenger: boolean;
+	status: 'pending' | 'accepted' | 'declined';
+	createdAt: number;
+	other: Person;
+	/** Your own copy of the set (the one you test on); null while the friend has not accepted. */
+	mySetId: string | null;
+	me: ChallengeScore | null;
+	them: ChallengeScore | null;
+};
+
 export interface SocialApi {
 	getMyProfile(): Promise<MyProfile>;
 	updateProfile(changes: { displayName?: string; username?: string; showOnLeaderboard?: boolean }): Promise<MyProfile>;
@@ -99,6 +118,15 @@ export interface SocialApi {
 	listIncomingShares(): Promise<IncomingShare[]>;
 	getIncomingShare(shareId: string): Promise<SharedSet | null>;
 	respondToShare(shareId: string, accept: boolean): Promise<void>;
+
+	/** Challenge a friend on one of your sets: they get to look at it, copy it and take a test; best scores are compared. */
+	sendChallenge(setId: string, friendId: string): Promise<void>;
+	listChallenges(): Promise<Challenge[]>;
+	/** The set of a challenge sent to you, ready to be copied. */
+	getChallengeSet(challengeId: string): Promise<SharedSet | null>;
+	/** Accept with the id of the copy you just saved, or decline. */
+	respondToChallenge(challengeId: string, accept: boolean, copySetId?: string): Promise<void>;
+	removeChallenge(challengeId: string): Promise<void>;
 
 	/** Own profile or a friend's, by username. null when it does not exist or you are not friends. */
 	getProfile(username: string): Promise<ProfileView | null>;

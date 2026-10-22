@@ -5,12 +5,17 @@ import type { StudySet } from '../schema/types';
 import { newId } from '../utils/id';
 import { translateIssue } from './json';
 import { createList, emptyRow, type TemplateId } from './templates';
-import type { DraftList, DraftSet } from './types';
+import type { ConceptRow } from '../grammar/rows';
+import type { DraftList, DraftRow, DraftSet } from './types';
 
 export type ToSetResult = { ok: true; set: StudySet } | { ok: false; issues: string[] };
 
 export function emptyDraft(): DraftSet {
 	return { id: newId(), title: '', subject: '', folder: '', settings: { ...DEFAULT_SETTINGS }, lists: [] };
+}
+
+function toDraftRow(row: ConceptRow): DraftRow {
+	return { id: newId(), prompt: row.prompt, answers: [...row.answers], tags: {}, ...(row.ref ? { ref: row.ref } : {}) };
 }
 
 const isBlank = (row: { prompt: string; answers: string[] }) => row.prompt.trim() === '' && row.answers.every((a) => a.trim() === '');
@@ -55,6 +60,30 @@ export class EditorState {
 		return list.id;
 	}
 
+	/** A list of begrippen (stijlfiguren, grammatica) with ready-made rows, e.g. from the catalogue picker. */
+	addConceptList(title: string, rows: ConceptRow[]): string {
+		const list: DraftList = { ...createList('stijl'), title, rows: rows.map(toDraftRow) };
+		this.set.lists.push(list);
+		return list.id;
+	}
+
+	/** Adds picked rows to an existing list; rows with the same prompt are skipped. Returns how many were added. */
+	appendConceptRows(listId: string, rows: ConceptRow[]): number {
+		const list = this.list(listId);
+		if (!list) return 0;
+		while (list.rows.length > 0 && isBlank(list.rows[list.rows.length - 1]!)) list.rows.pop();
+		const have = new Set(list.rows.map((r) => r.prompt.trim().toLowerCase()));
+		let added = 0;
+		for (const row of rows) {
+			const key = row.prompt.trim().toLowerCase();
+			if (have.has(key)) continue;
+			have.add(key);
+			list.rows.push(toDraftRow(row));
+			added++;
+		}
+		return added;
+	}
+
 	removeList(listId: string): void {
 		this.set.lists = this.set.lists.filter((l) => l.id !== listId);
 	}
@@ -89,6 +118,31 @@ export class EditorState {
 		if (!list) return;
 		while (list.rows.length > 0 && isBlank(list.rows[list.rows.length - 1]!)) list.rows.pop();
 		for (const { prompt, answers } of pasted) list.rows.push({ id: newId(), prompt, answers, tags: {} });
+	}
+
+	/** Applies accepted AI changes (see ai/edit.ts). Unknown lists or rows are skipped. Returns how many were applied. */
+	applyEdit(changes: readonly import('../ai/edit').EditChange[]): number {
+		let applied = 0;
+		for (const change of changes) {
+			const list = this.list(change.listId);
+			if (!list) continue;
+			if (change.kind === 'add') {
+				while (list.rows.length > 0 && isBlank(list.rows[list.rows.length - 1]!)) list.rows.pop();
+				list.rows.push({ id: newId(), prompt: change.after.prompt, answers: change.after.answers, tags: { ...change.after.tags } });
+				applied++;
+				continue;
+			}
+			const row = list.rows.find((r) => r.id === change.rowId);
+			if (!row) continue;
+			if (change.kind === 'edit') {
+				row.prompt = change.after.prompt;
+				row.answers = [...change.after.answers];
+			} else {
+				list.rows = list.rows.filter((r) => r.id !== change.rowId);
+			}
+			applied++;
+		}
+		return applied;
 	}
 
 	/** Returns an error message (Dutch) or null. */
@@ -188,7 +242,9 @@ export class EditorState {
 							Object.entries(row.tags)
 								.map(([k, v]) => [k, v.trim()] as const)
 								.filter(([k, v]) => v !== '' && list.dimensions.includes(k))
-						)
+						),
+						...(row.ref ? { ref: row.ref } : {}),
+						...(row.tip?.trim() ? { tip: row.tip.trim() } : {})
 					}))
 			}))
 		};

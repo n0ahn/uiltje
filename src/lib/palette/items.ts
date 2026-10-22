@@ -72,7 +72,9 @@ export function buildPaletteItems(overview: DashboardData | null): PaletteItem[]
 
 	items.push(
 		{ id: 'actie:nieuwe-set', group: 'actions', title: 'Nieuwe set', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', accent: 'primary', href: '/sets/new' },
-		{ id: 'actie:importeren', group: 'actions', title: 'Set importeren', keywords: ['json', 'plakken', 'uploaden'], icon: 'import', href: '/sets/new?import=1' },
+		{ id: 'actie:importeren', group: 'actions', title: 'Importeren uit Quizlet of StudyGo', keywords: ['import', 'plakken', 'kopiëren', 'woordenlijst', 'kaartjes'], icon: 'import', href: '/sets?import=cards' },
+		{ id: 'actie:importeren-json', group: 'actions', title: 'Importeren uit JSON', keywords: ['import', 'plakken', 'uploaden', 'bestand'], icon: 'code', href: '/sets?import=json' },
+		{ id: 'actie:ai', group: 'actions', title: 'Set maken met AI', subtitle: 'Beschrijf je set, of gebruik een foto', keywords: ['automatisch', 'genereren', 'prompt', 'foto', 'document'], icon: 'sparkles', href: '/sets/ai' },
 		{ id: 'actie:nieuw-vak', group: 'actions', title: 'Nieuw vak', subtitle: 'Een vak ontstaat bij een nieuwe set', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', href: '/sets/new' },
 		{ id: 'actie:vriend', group: 'actions', title: 'Vriend toevoegen', keywords: ['gebruikersnaam', 'uitnodigen'], icon: 'user-plus', href: '/friends' },
 		{ id: 'actie:thema', group: 'actions', title: 'Thema wisselen', subtitle: 'Licht of donker', keywords: ['dark mode', 'donker', 'licht', 'nacht'], icon: 'moon', run: () => theme.toggle() }

@@ -6,7 +6,7 @@
 
 	const actions: { label: string; icon: IconName; href: string; primary?: boolean }[] = [
 		{ label: 'Nieuwe set', icon: 'plus', href: '/sets/new', primary: true },
-		{ label: 'Importeer', icon: 'import', href: '/sets/new?import=1' },
+		{ label: 'Importeer', icon: 'import', href: '/sets?import=cards' },
 		{ label: 'Deel set', icon: 'share', href: '/sets' },
 		{ label: 'Vriend toevoegen', icon: 'user-plus', href: '/friends' }
 	];

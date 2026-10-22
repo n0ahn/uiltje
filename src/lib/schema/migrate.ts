@@ -20,7 +20,9 @@ const migrations: Record<number, (data: Json) => Json> = {
 		return rest;
 	},
 	// v2 -> v3: sets got a keyboard setting ('default'; filled in by normalizeSet).
-	2: (data) => data
+	2: (data) => data,
+	// v3 -> v4: lists of kind 'concept' and the optional row `ref` (both are additions, nothing to rewrite).
+	3: (data) => data
 };
 
 function normalizeRow(raw: unknown): unknown {

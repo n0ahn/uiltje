@@ -2,7 +2,7 @@
 	import { buildBlocks } from '../../engine/blocks';
 	import { selectRows } from '../../engine/options';
 	import { gradeFromScore, formatGrade } from '../../engine/grading';
-	import type { StudySet } from '../../schema/types';
+	import { isWordKind, type StudySet } from '../../schema/types';
 	import { settings } from '../../state/settings.svelte';
 	import type { TestRecord } from '../../storage/adapter';
 	import Button from '../ui/Button.svelte';
@@ -10,6 +10,7 @@
 	import Icon from '../ui/Icon.svelte';
 	import Segmented from '../ui/Segmented.svelte';
 	import {
+		CONCEPT_DIRECTION_OPTIONS,
 		DIRECTION_OPTIONS,
 		MODE_OPTIONS,
 		QUESTION_COUNT_CHOICES,
@@ -37,12 +38,12 @@
 	// svelte-ignore state_referenced_locally
 	const defaults = settings.value.practice;
 	// svelte-ignore state_referenced_locally
-	const hasWords = sets.some((set) => set.lists.some((l) => l.kind === 'vocab' && l.rows.length > 0));
+	const hasWords = sets.some((set) => set.lists.some((l) => isWordKind(l.kind) && l.rows.length > 0));
 	// svelte-ignore state_referenced_locally
-	const hasForms = sets.some((set) => set.lists.some((l) => l.kind !== 'vocab' && l.rows.length > 0));
+	const hasForms = sets.some((set) => set.lists.some((l) => !isWordKind(l.kind) && l.rows.length > 0));
 	// Words and rijtjes are practised differently, so one session is always one kind.
 	let kind = $state<PracticeKind>(hasForms || !hasWords ? 'rijtjes' : 'woorden');
-	const usable = (set: StudySet) => set.lists.filter((l) => l.rows.length > 0 && (l.kind === 'vocab') === (kind === 'woorden'));
+	const usable = (set: StudySet) => set.lists.filter((l) => l.rows.length > 0 && isWordKind(l.kind) === (kind === 'woorden'));
 	const fresh = () => Object.fromEntries(sets.map((set) => [set.id, usable(set).map((l) => l.id)]));
 	let selection = $state<Record<string, string[]>>(fresh());
 	function setKind(next: PracticeKind) {
@@ -71,6 +72,16 @@
 		{ id: null as number | null, name: 'Geen' },
 		...TIME_LIMIT_CHOICES.map((m) => ({ id: m as number | null, name: `${m} min` }))
 	];
+
+	// When every selected list is a list of begrippen (stijlfiguren, grammatica) the directions read "uitleg → term".
+	const onlyConcepts = $derived(
+		kind === 'woorden' &&
+			sets.every((set) => set.lists.filter((l) => (selection[set.id] ?? []).includes(l.id)).every((l) => l.kind === 'concept')) &&
+			selectedCount() > 0
+	);
+	function selectedCount(): number {
+		return Object.values(selection).reduce((n, ids) => n + ids.length, 0);
+	}
 
 	const multiple = $derived(sets.length > 1);
 	const selectedTotal = $derived(Object.values(selection).reduce((n, ids) => n + ids.length, 0));
@@ -128,7 +139,7 @@
 
 			<Card class="flex flex-col gap-4">
 				<div class="flex items-center justify-between gap-3">
-					<h2 class="font-heading text-lg font-semibold">{kind === 'woorden' ? 'Welke woorden?' : 'Welke rijtjes?'}</h2>
+					<h2 class="font-heading text-lg font-semibold">{kind === 'woorden' ? 'Welke woorden en begrippen?' : 'Welke rijtjes?'}</h2>
 					<button type="button" class="rounded-full px-3 py-1 text-sm font-semibold text-primary-text hover:bg-primary-soft" onclick={toggleAll}>
 						{allSelected ? 'Niets selecteren' : 'Alles selecteren'}
 					</button>
@@ -184,7 +195,7 @@
 			<Segmented
 				legend="Richting"
 				stack
-				options={kind === 'woorden' ? VOCAB_DIRECTION_OPTIONS : DIRECTION_OPTIONS.map((o) => ({ id: o.id, name: o.name, text: o.text }))}
+				options={kind === 'woorden' ? (onlyConcepts ? CONCEPT_DIRECTION_OPTIONS : VOCAB_DIRECTION_OPTIONS) : DIRECTION_OPTIONS.map((o) => ({ id: o.id, name: o.name, text: o.text }))}
 				bind:value={direction}
 			/>
 

@@ -49,8 +49,8 @@ export async function generateJson<T>(options: GenerateOptions<T>): Promise<{ va
 	const budget = options.totalBudgetMs ?? 55_000;
 	const started = now();
 
-	if (!apiKey) throw new AiError('not_configured', 'De AI-import is nog niet ingesteld.');
-	if (models.length === 0) throw new AiError('not_configured', 'Er is geen AI-model ingesteld.');
+	if (!apiKey) throw new AiError('not_configured', 'De AI is nog niet beschikbaar.');
+	if (models.length === 0) throw new AiError('not_configured', 'De AI is nog niet beschikbaar.');
 
 	const failures: Failure[] = [];
 	const body = JSON.stringify({
@@ -77,7 +77,7 @@ export async function generateJson<T>(options: GenerateOptions<T>): Promise<{ va
 				continue;
 			}
 
-			if (response.status === 401 || response.status === 403) throw new AiError('not_configured', 'De AI-sleutel is ongeldig of heeft geen toegang.');
+			if (response.status === 401 || response.status === 403) throw new AiError('not_configured', 'De AI is nu niet beschikbaar.');
 			if (response.status === 429) {
 				failures.push('rate_limited'); // quota is per model: go straight to the next one
 				break;
@@ -131,7 +131,7 @@ function readCandidate(data: unknown): Candidate {
 
 function summarize(failures: Failure[]): AiError {
 	if (failures.length > 0 && failures.every((f) => f === 'rate_limited')) {
-		return new AiError('rate_limited', 'De gratis AI-limiet is even op. Probeer het over een paar minuten opnieuw.');
+		return new AiError('rate_limited', 'De AI is even erg druk. Probeer het over een paar minuten opnieuw.');
 	}
 	if (failures.includes('bad_output') && !failures.includes('unavailable')) {
 		return new AiError('bad_output', 'De AI gaf geen bruikbaar antwoord. Probeer het opnieuw, of met een scherpere foto.');

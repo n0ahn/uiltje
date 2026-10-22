@@ -185,7 +185,11 @@ class NotificationState {
 	async #loadLive(stored: AppNotification[], announce: AppNotification[]): Promise<AppNotification[] | null> {
 		try {
 			const social = getSocial();
-			const [friendships, shares] = await Promise.all([social.listFriendships(), social.listIncomingShares()]);
+			const [friendships, shares, challenges] = await Promise.all([
+				social.listFriendships(),
+				social.listIncomingShares(),
+				social.listChallenges().catch(() => []) // 005_challenges.sql may not be run yet: no challenge notifications then
+			]);
 			const live: AppNotification[] = [];
 
 			for (const f of friendships) {
@@ -211,6 +215,20 @@ class NotificationState {
 					createdAt: s.createdAt,
 					href: `/gedeeld/${s.shareId}`,
 					person: { name: s.sender.displayName, avatarUrl: s.sender.avatarUrl },
+					live: true
+				});
+			}
+
+			for (const c of challenges) {
+				if (c.iAmChallenger || c.status !== 'pending') continue;
+				live.push({
+					id: `ch:${c.id}:${c.createdAt}`,
+					kind: 'share',
+					title: `${c.other.displayName} daagt je uit`,
+					text: `Maak een toets op "${c.title}" en kijk wie het hoogste cijfer haalt.`,
+					createdAt: c.createdAt,
+					href: `/uitdaging/${c.id}`,
+					person: { name: c.other.displayName, avatarUrl: c.other.avatarUrl },
 					live: true
 				});
 			}

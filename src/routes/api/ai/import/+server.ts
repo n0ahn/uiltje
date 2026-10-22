@@ -1,5 +1,5 @@
-// POST /api/ai/import: photos and/or text -> StudySet draft. The Gemini key never leaves the server.
-// Signed-in users only (the free quota is shared). Request body must stay under Vercel's 4.5 MB limit, so the browser
+// POST /api/ai/import: photos, a PDF, text or a short description (auto mode) -> StudySet draft. The API key never leaves the server.
+// Signed-in users only. Request body must stay under Vercel's 4.5 MB limit, so the browser
 // shrinks photos first (lib/ai/images.ts) and this route enforces the same caps.
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
@@ -15,12 +15,16 @@ export const config = { maxDuration: 60 };
 const MAX_IMAGES = 5;
 const MAX_IMAGE_CHARS = 1_400_000; // base64 length, about 1 MB of JPEG
 const MAX_TOTAL_CHARS = 3_800_000;
+const MAX_PROMPT_CHARS = 1000;
 const MAX_TEXT_CHARS = 40_000; // pasted text is capped at 20 000 in the UI; extracted DOCX text may be longer
 
 const BodySchema = z.object({
 	text: z.string().max(MAX_TEXT_CHARS).default(''),
 	subject: z.string().max(60).default(''),
 	note: z.string().max(500).default(''),
+	/** Auto mode: what set to make. */
+	prompt: z.string().max(MAX_PROMPT_CHARS).default(''),
+	level: z.enum(['', 'vmbo-b', 'vmbo-k', 'vmbo-gt', 'havo', 'vwo', 'gym']).default(''),
 	images: z
 		.array(z.object({ mime: z.enum(['image/jpeg', 'image/png', 'image/webp']), data: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/).max(MAX_IMAGE_CHARS) }))
 		.max(MAX_IMAGES)
@@ -55,7 +59,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	} catch {
 		return fail(400, 'invalid', 'Dit verzoek is niet geldig.');
 	}
-	if (body.text.trim() === '' && body.images.length === 0 && body.documents.length === 0) return fail(400, 'empty', 'Voeg een foto, document of tekst toe.');
+	if (body.prompt.trim() === '' && body.text.trim() === '' && body.images.length === 0 && body.documents.length === 0) return fail(400, 'empty', 'Beschrijf de set, of voeg een foto, document of tekst toe.');
 	if ([...body.images, ...body.documents].reduce((sum, file) => sum + file.data.length, 0) > MAX_TOTAL_CHARS) return fail(413, 'too_big', 'De bestanden zijn samen te groot. Kies er minder, of kleinere.');
 
 	const wait = checkAiLimit(user.id);
@@ -68,6 +72,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	} catch (error) {
 		if (error instanceof AiError) return fail(STATUS[error.code], error.code, error.message);
 		console.error('AI import failed', error);
-		return fail(500, 'error', 'Er ging iets mis bij het lezen. Probeer het opnieuw.');
+		return fail(500, 'error', 'Er ging iets mis. Probeer het opnieuw.');
 	}
 };

@@ -298,6 +298,8 @@
 		showGrade={settings.value.test.showGrade}
 		troubleCount={learn ? session.wrongKeys().length : 0}
 		{backHref}
+		{sets}
+		troubleKeys={learn ? session.wrongKeys() : []}
 		onrestart={() => onrestart(config)}
 		onchange={() => onrestart(null)}
 		onretry={retryWrong}

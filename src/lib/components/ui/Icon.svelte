@@ -47,7 +47,8 @@
 		| 'eye-off'
 		| 'bell'
 		| 'sparkles'
-		| 'heart';
+		| 'heart'
+		| 'folder';
 </script>
 
 <script lang="ts">
@@ -99,6 +100,7 @@
 	import BellIcon from '@lucide/svelte/icons/bell';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 	import HeartIcon from '@lucide/svelte/icons/heart';
+	import FolderIcon from '@lucide/svelte/icons/folder';
 
 	// Icons come from Lucide (https://lucide.dev). Keep our own names so components do not depend on the library.
 	const ICONS = {
@@ -149,7 +151,8 @@
 		'eye-off': EyeOffIcon,
 		bell: BellIcon,
 		sparkles: SparklesIcon,
-		heart: HeartIcon
+		heart: HeartIcon,
+		folder: FolderIcon
 	};
 	// Solid icons look friendlier for "play" and "flame".
 	const FILLED = new Set<IconName>(['play', 'flame']);
