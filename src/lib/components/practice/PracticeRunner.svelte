@@ -11,6 +11,7 @@
 	import { getStorage } from '../../storage';
 	import type { SessionLog, TestRecord } from '../../storage/adapter';
 	import { applyDeltas } from '../../storage/progress';
+	import { testCoversWholeSet } from '../../utils/coverage';
 	import { newId } from '../../utils/id';
 	import { formatClock } from '../../utils/time';
 	import Button from '../ui/Button.svelte';
@@ -187,9 +188,13 @@
 			passed,
 			durationSeconds,
 			timedOut,
+			kind: 'rijtjes',
 			wrong: result.wrong.map((i) => ({ rowKey: i.rowKey, listTitle: i.listTitle, shown: i.shown, given: i.given, expected: i.expected }))
 		};
-		void storage.saveTestResult(record).catch(() => toasts.show('Je toetsresultaat kon niet worden opgeslagen'));
+		// Only a test of the whole set counts for a challenge: check against the complete set in storage.
+		void testCoversWholeSet(storage, 'rijtjes', rows)
+			.then((wholeSet) => storage.saveTestResult({ ...record, wholeSet }))
+			.catch(() => toasts.show('Je toetsresultaat kon niet worden opgeslagen'));
 	}
 
 	// ---- actions

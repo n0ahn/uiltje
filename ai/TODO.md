@@ -169,3 +169,11 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] "Bezwaar" (small button on a "niet"): optional note, sent to the owner (SQL 007), the answer counts as goed at once
 - [x] A begrip that ends "niet" comes back later in the run (after 3 other begrippen), max 3 attempts per begrip
 - [ ] Try in the real app: a run with wrong answers (they come back), a "bijna" choice, an objection (check /review > Bezwaren), a failed check (offline) and "Opnieuw nakijken"
+
+## Uitdagingen: alleen de hele set telt (2026-10-24)
+- [x] A challenge only counts a test of the WHOLE set: every row of its kind, no question limit, no picked terms ("Oefen selectie"), no list left out
+- [x] Sets with rijtjes AND woorden/begrippen: one whole-set test of each kind; the score is the total of the best test per kind
+- [x] /uitdagingen explains why a score is missing (partial test, other kind still missing); copy on the invite page and in the challenge dialog
+- [ ] Run `ai/sql/009_challenge_whole_set.sql` in the Supabase SQL editor
+- [ ] Try with two accounts: a test of 10 forms does not count, a test of all forms does, a set with rijtjes + woorden needs both
+- [ ] Tests taken before this update have no whole-set mark and do not count: take the test again

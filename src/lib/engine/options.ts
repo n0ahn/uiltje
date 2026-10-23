@@ -1,5 +1,5 @@
 // Per-session practice options that change which rows are asked or how strictly they are checked. Pure TS.
-import type { StudySet } from '../schema/types';
+import { isWordKind, type StudySet } from '../schema/types';
 import type { Rng } from './random';
 import { shuffle } from './random';
 import { flattenSources } from './stages';
@@ -48,4 +48,20 @@ export function selectRows(
 		options.strictness
 	);
 	return options.onlyRowKeys ? onlyRows(rows, options.onlyRowKeys) : rows;
+}
+
+/** One test is one kind of practice: words and begrippen ("woorden") or forms ("rijtjes"). */
+export type TestKind = 'rijtjes' | 'woorden';
+
+/**
+ * True when `tested` holds every row of every list of that kind in these (complete) sets: no question limit, no picked
+ * terms, no list left out. A challenge only counts a test like that.
+ */
+export function coversAll(sets: readonly StudySet[], kind: TestKind, tested: readonly PracticeRow[]): boolean {
+	const selection = Object.fromEntries(
+		sets.map((set) => [set.id, set.lists.filter((l) => l.rows.length > 0 && isWordKind(l.kind) === (kind === 'woorden')).map((l) => l.id)])
+	);
+	const all = selectRows(sets, selection, { strictness: 'set', onlyRowKeys: null });
+	const keys = new Set(tested.map((row) => row.key));
+	return all.length > 0 && all.every((row) => keys.has(row.key));
 }

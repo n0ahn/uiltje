@@ -37,6 +37,10 @@ export type TestRecord = {
 	durationSeconds: number;
 	/** The time limit ran out before the test was handed in. */
 	timedOut: boolean;
+	/** Words/begrippen or rijtjes: one test is always one kind. Absent on tests from before challenges needed a whole-set test. */
+	kind?: 'rijtjes' | 'woorden';
+	/** The test asked every row of that kind of the set (no question limit, no picked terms, no lists left out). Only such a test counts for a challenge. */
+	wholeSet?: boolean;
 	wrong: { rowKey: string; listTitle: string; shown: string; given: string; expected: string[] }[];
 };
 

@@ -22,7 +22,7 @@
 {:else}
 	<div class="mx-auto mb-4 flex max-w-xl items-start gap-3 rounded-card border border-border bg-surface p-4">
 		<Icon name="trophy" size={24} class="mt-0.5 shrink-0" />
-		<p><strong>Je bent uitgedaagd!</strong> Voeg de set toe aan je sets, maak een toets en kijk onder <a href="/uitdagingen" class="font-bold text-primary-text hover:underline">Uitdagingen</a> wie het hoogste cijfer haalt.</p>
+		<p><strong>Je bent uitgedaagd!</strong> Voeg de set toe aan je sets, maak een toets over de hele set (een deel telt niet mee) en kijk onder <a href="/uitdagingen" class="font-bold text-primary-text hover:underline">Uitdagingen</a> wie het hoogste cijfer haalt.</p>
 	</div>
 	{#key id}
 		<SharedSetView

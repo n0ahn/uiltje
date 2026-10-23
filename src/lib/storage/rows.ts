@@ -155,6 +155,9 @@ export type SessionRow = {
 	duration_seconds: number;
 	timed_out: boolean;
 	wrong: TestRecord['wrong'];
+	/** ai/sql/009: absent columns are handled in `saveTestResult`. */
+	test_kind: 'rijtjes' | 'woorden' | null;
+	whole_set: boolean;
 };
 
 export function toSessionRow(record: TestRecord): SessionRow {
@@ -173,7 +176,9 @@ export function toSessionRow(record: TestRecord): SessionRow {
 		passed: record.passed,
 		duration_seconds: duration,
 		timed_out: record.timedOut,
-		wrong: record.wrong
+		wrong: record.wrong,
+		test_kind: record.kind ?? null,
+		whole_set: record.wholeSet === true && record.kind !== undefined
 	};
 }
 

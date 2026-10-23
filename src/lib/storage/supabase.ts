@@ -126,9 +126,15 @@ export function createSupabaseAdapter(client: SupabaseClient, userId: string): S
 
 		async saveTestResult(record) {
 			if (!isUuid(record.id)) throw new StorageError('Dit toetsresultaat heeft een ongeldig id en kan niet worden opgeslagen.');
-			const { error } = await client
-				.from('practice_sessions')
-				.upsert({ ...toSessionRow(record), user_id: userId }, { onConflict: 'id' });
+			const row = { ...toSessionRow(record), user_id: userId };
+			let { error } = await client.from('practice_sessions').upsert(row, { onConflict: 'id' });
+			// ai/sql/009 not run yet: save the test without the whole-set columns (it then does not count for a challenge).
+			if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+				const { test_kind, whole_set, ...old } = row;
+				void test_kind;
+				void whole_set;
+				({ error } = await client.from('practice_sessions').upsert(old, { onConflict: 'id' }));
+			}
 			if (error) fail('write', error);
 		},
 

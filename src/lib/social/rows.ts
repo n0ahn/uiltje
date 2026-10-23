@@ -1,7 +1,7 @@
 // zod schemas for what the social RPCs return (validate at every boundary), plus the mapping to app types.
 import { z } from 'zod';
 import { StorageError } from '../storage/adapter';
-import type { Challenge, ChallengeScore, FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, ProfileView, Relation } from './types';
+import type { Challenge, ChallengeKind, ChallengeScore, FoundPerson, Friendship, IncomingShare, LeaderRow, MyProfile, Person, ProfileView, Relation } from './types';
 
 const nullableText = z.string().nullable();
 const time = z.string().nullable();
@@ -72,7 +72,12 @@ export const challengeRow = z.object({
 	my_at: time,
 	their_score: score,
 	their_grade: score,
-	their_at: time
+	their_at: time,
+	// ai/sql/009; a database without it simply has none of these.
+	needed_kinds: z.array(z.string()).nullish(),
+	my_kinds: z.array(z.string()).nullish(),
+	their_kinds: z.array(z.string()).nullish(),
+	my_partial: z.boolean().nullish()
 });
 
 export const sharedRow = z.object({
@@ -194,6 +199,8 @@ export function toProfileView(url: AvatarUrl, r: z.infer<typeof profileViewRow>)
 	};
 }
 
+const toKinds = (values: readonly string[] | null | undefined): ChallengeKind[] => (values ?? []).filter((v): v is ChallengeKind => v === 'rijtjes' || v === 'woorden');
+
 function toScore(value: number | null, grade: number | null, at: string | null): ChallengeScore | null {
 	return value === null ? null : { score: value, grade, at: at ? Date.parse(at) : 0 };
 }
@@ -210,6 +217,10 @@ export function toChallenge(url: AvatarUrl, r: z.infer<typeof challengeRow>): Ch
 		other: toPerson(url, r.other_id, r.other_username, r.other_name, r.other_avatar_path, r.other_avatar_updated_at),
 		mySetId: r.my_set_id,
 		me: toScore(r.my_score, r.my_grade, r.my_at),
-		them: toScore(r.their_score, r.their_grade, r.their_at)
+		them: toScore(r.their_score, r.their_grade, r.their_at),
+		neededKinds: toKinds(r.needed_kinds),
+		myKinds: toKinds(r.my_kinds),
+		theirKinds: toKinds(r.their_kinds),
+		myPartial: r.my_partial === true
 	};
 }

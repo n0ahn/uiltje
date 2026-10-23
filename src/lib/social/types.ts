@@ -70,6 +70,8 @@ export type ProfileView = Person & {
 
 /** Best finished test on the challenged set, taken after the challenge was sent. `score` is 0..1. */
 export type ChallengeScore = { score: number; grade: number | null; at: number };
+/** A challenge score needs a test of the whole set, per kind of practice the set has (ai/sql/009). */
+export type ChallengeKind = 'rijtjes' | 'woorden';
 
 /** A set challenge between you and a friend. `me` and `them` stay null until the friend accepted and someone took a test. */
 export type Challenge = {
@@ -85,6 +87,13 @@ export type Challenge = {
 	mySetId: string | null;
 	me: ChallengeScore | null;
 	them: ChallengeScore | null;
+	/** Kinds of practice the set contains; one whole-set test of each kind is needed. Empty when ai/sql/009 has not been run. */
+	neededKinds: ChallengeKind[];
+	/** Kinds you / the other person already took a whole-set test of (since the challenge was sent). */
+	myKinds: ChallengeKind[];
+	theirKinds: ChallengeKind[];
+	/** You took a test on the set since the challenge that did not cover the whole set. */
+	myPartial: boolean;
 };
 
 export interface SocialApi {

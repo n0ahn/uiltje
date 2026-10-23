@@ -9,7 +9,7 @@
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import { formatGrade } from '#lib/engine/grading.js';
 	import { getSocial } from '#lib/social/index.js';
-	import type { Challenge, ChallengeScore } from '#lib/social/types.js';
+	import type { Challenge, ChallengeKind, ChallengeScore } from '#lib/social/types.js';
 	import { toasts } from '#lib/state/toast.svelte.js';
 	import { StorageError } from '#lib/storage/adapter.js';
 
@@ -38,13 +38,26 @@
 	const declined = $derived((challenges ?? []).filter((c) => c.iAmChallenger && c.status === 'declined'));
 
 	const percent = (s: ChallengeScore) => `${Math.round(s.score * 100)}%`;
-	const scoreText = (s: ChallengeScore | null) => (s ? `${s.grade !== null ? `${formatGrade(s.grade)} · ` : ''}${percent(s)}` : 'nog geen toets');
+	const scoreText = (s: ChallengeScore | null) => (s ? `${s.grade !== null ? `${formatGrade(s.grade)} · ` : ''}${percent(s)}` : 'nog geen hele set getoetst');
+
+	const KIND_NAME: Record<ChallengeKind, string> = { rijtjes: 'rijtjes', woorden: 'woorden en begrippen' };
+	/** Kinds of practice of the set that still lack a whole-set test. */
+	const missing = (c: Challenge, done: readonly ChallengeKind[]) => c.neededKinds.filter((k) => !done.includes(k));
+
+	/** Why your score is not there yet, when you did take a test (only the whole set counts). */
+	function myHint(c: Challenge): string {
+		if (c.status !== 'accepted' || c.me) return '';
+		const left = missing(c, c.myKinds);
+		if (c.myKinds.length > 0 && left.length > 0) return `Je toets over de hele set telt pas als je ook een toets over de ${left.map((k) => KIND_NAME[k]).join(' en ')} maakt.`;
+		if (c.myPartial) return 'Je laatste toets telde niet mee: je moet de hele set toetsen. Kies alle lijsten, "Alles" bij het aantal en geen selectie.';
+		return '';
+	}
 
 	function verdict(c: Challenge): string {
 		if (c.status !== 'accepted') return '';
-		if (!c.me && !c.them) return 'Nog niemand heeft een toets gemaakt.';
-		if (c.me && !c.them) return `${c.other.displayName} moet nog een toets maken.`;
-		if (!c.me && c.them) return `${c.other.displayName} is je voor: maak een toets!`;
+		if (!c.me && !c.them) return 'Nog niemand heeft de hele set getoetst.';
+		if (c.me && !c.them) return `${c.other.displayName} moet de hele set nog toetsen.`;
+		if (!c.me && c.them) return `${c.other.displayName} is je voor: toets de hele set!`;
 		if (c.me!.score > c.them!.score) return 'Jij staat voor!';
 		if (c.me!.score < c.them!.score) return `${c.other.displayName} staat voor.`;
 		return 'Gelijkspel.';
@@ -72,7 +85,7 @@
 	<div class="flex flex-wrap items-center gap-3">
 		<div class="min-w-0 flex-1">
 			<h1 class="font-heading text-3xl font-semibold">Uitdagingen</h1>
-			<p class="text-text-muted">Daag een vriend uit op een set (via het ⋮-menu van de set) en kijk wie het hoogste cijfer haalt.</p>
+			<p class="text-text-muted">Daag een vriend uit op een set (via het ⋮-menu van de set) en kijk wie het hoogste cijfer haalt. Alleen een toets over de hele set telt mee.</p>
 		</div>
 	</div>
 
@@ -132,8 +145,9 @@
 								</div>
 							</dl>
 							<p class="min-h-6 font-semibold" aria-live="polite">{verdict(c)}</p>
+							<p class="min-h-5 text-sm text-text-muted">{myHint(c)}</p>
 							<div class="flex flex-wrap gap-3">
-								{#if c.mySetId}<Button href="/sets/{c.mySetId}/practice?mode=test" class="min-w-40"><Icon name="play" size={18} /> Toets maken</Button>{/if}
+								{#if c.mySetId}<Button href="/sets/{c.mySetId}/practice?mode=test" class="min-w-40"><Icon name="play" size={18} /> Toets de hele set</Button>{/if}
 								<Button variant="ghost" disabled={busy} onclick={() => remove(c)}>Verwijderen</Button>
 							</div>
 						{/if}

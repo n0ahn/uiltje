@@ -58,7 +58,7 @@
 	{:else}
 		<div class="flex flex-col gap-4">
 			<p class="text-text-muted">
-				Je vriend krijgt "{title}" te zien, maakt er een eigen kopie van en maakt een toets. Daarna zie je op <a href="/uitdagingen" class="font-bold text-primary-text hover:underline">Uitdagingen</a> wie het hoogste cijfer haalt. Alleen toetsen op deze set na het versturen tellen mee, en voor jou ook.
+				Je vriend krijgt "{title}" te zien, maakt er een eigen kopie van en maakt een toets. Daarna zie je op <a href="/uitdagingen" class="font-bold text-primary-text hover:underline">Uitdagingen</a> wie het hoogste cijfer haalt. Alleen toetsen over de hele set na het versturen tellen mee, en voor jou ook. Een toets met maar een deel van de set telt niet.
 			</p>
 			{#if loading}
 				<Skeleton class="h-12 w-full" />
