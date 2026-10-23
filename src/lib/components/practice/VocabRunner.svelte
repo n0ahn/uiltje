@@ -24,6 +24,7 @@
 	import type { PracticeConfig } from './config';
 	import { wayLabelFor, wordingFor } from './copy';
 	import PracticeResult from './PracticeResult.svelte';
+	import RowNote from './RowNote.svelte';
 
 	// Vocabulary practice. Learn: rounds of 5 words (look, choose, type, type again). Test: one word at a time.
 	type Props = {
@@ -413,6 +414,7 @@
 						<Owl pose={lv.j.correct ? 'cheer' : 'oops'} size={44} />
 						<p class="font-heading font-semibold">{lv.j.correct ? 'Goed zo!' : `Fout. Het juiste antwoord is: ${lv.j.expected}`}</p>
 					</div>
+					{#if !lv.j.correct}<RowNote {sets} rowKey={q.rowKey} />{/if}
 					<div>
 						<!-- svelte-ignore a11y_autofocus -->
 						<Button size="lg" class="min-w-44" autofocus onclick={next}>Volgende</Button>
@@ -450,6 +452,7 @@
 						<p class="font-heading font-semibold">{lv.j.revealed ? 'Het antwoord is:' : 'Fout. Het juiste antwoord is:'}</p>
 						<p class="font-heading text-xl">{lv.j.expected}</p>
 					</div>
+					<RowNote {sets} rowKey={q.rowKey} />
 					<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); next(); }}>
 						<label class="flex flex-col gap-1.5">
 							<span class="text-sm text-text-muted">Typ het juiste antwoord over om verder te gaan</span>

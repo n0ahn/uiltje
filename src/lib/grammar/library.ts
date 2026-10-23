@@ -10,7 +10,7 @@ import { SCHEMA_VERSION } from '../schema/types';
 import type { ListKind, StudySet } from '../schema/types';
 import type { GrammarCatalogue } from './types';
 
-export type LibraryList = { title: string; kind: ListKind; columns: { prompt: string; answer: string }; rows: { prompt: string; answers: string[]; ref?: string }[] };
+export type LibraryList = { title: string; kind: ListKind; columns: { prompt: string; answer: string }; rows: { prompt: string; answers: string[]; ref?: string; tip?: string }[] };
 
 export type LibraryEntry = {
 	id: string;
@@ -105,7 +105,7 @@ export function entryToStudySet(entry: LibraryEntry, newId: () => string): { ok:
 			group: null,
 			columns: list.columns,
 			dimensions: [],
-			rows: list.rows.map((row) => ({ id: newId(), prompt: row.prompt, answers: row.answers, tags: {}, ...(row.ref ? { ref: row.ref } : {}) }))
+			rows: list.rows.map((row) => ({ id: newId(), prompt: row.prompt, answers: row.answers, tags: {}, ...(row.ref ? { ref: row.ref } : {}), ...(row.tip ? { tip: row.tip } : {}) }))
 		}))
 	});
 	return result.ok ? { ok: true, set: result.set } : { ok: false, issues: result.issues };

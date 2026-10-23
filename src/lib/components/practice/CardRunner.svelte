@@ -21,6 +21,7 @@
 	import { greekKeyboard } from '../../utils/keyboard';
 	import { CARD_MODE_INFO, type CardConfig } from './config';
 	import { wayLabelFor } from './copy';
+	import RowNote from './RowNote.svelte';
 
 	// Flashcards, multiple choice, dictation, spelling and hints: one pass over the selected rows (engine/cards.ts).
 	type Props = {
@@ -309,6 +310,7 @@
 						{/if}
 					</div>
 				</div>
+				{#if !v.j.correct && v.item && mode !== 'flashcards'}<RowNote {sets} rowKey={v.item.rowKey} />{/if}
 				<div>
 					<!-- svelte-ignore a11y_autofocus -->
 					<Button size="lg" class="min-w-44" autofocus onclick={next}>{v.index + 1 === v.total ? 'Afronden' : 'Volgende'}</Button>

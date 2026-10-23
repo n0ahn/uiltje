@@ -4,6 +4,7 @@ export type NotificationKind =
 	| 'friend-request' // somebody wants to be your friend (live: gone once you answered)
 	| 'friend-accepted' // somebody accepted your request
 	| 'share' // somebody sent you a set (live: gone once you answered)
+	| 'dispute-reply' // the owner handled your "Uitleggen" dispute (live: the last 30 days)
 	| 'welcome'
 	| 'streak' // streak milestone
 	| 'milestone'; // total answers milestone

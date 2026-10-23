@@ -18,6 +18,7 @@
 		'friend-request': 'user-plus',
 		'friend-accepted': 'users',
 		share: 'share',
+		'dispute-reply': 'check',
 		welcome: 'sparkles',
 		streak: 'flame',
 		milestone: 'trophy'
@@ -26,6 +27,7 @@
 		'friend-request': 'bg-primary-soft text-primary-text',
 		'friend-accepted': 'bg-primary-soft text-primary-text',
 		share: 'bg-primary-soft text-primary-text',
+		'dispute-reply': 'bg-sage-soft text-text',
 		welcome: 'bg-sage-soft text-text',
 		streak: 'bg-surface-2 text-flame',
 		milestone: 'bg-surface-2 text-flame'

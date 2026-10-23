@@ -1,4 +1,4 @@
-// POST /api/ai/explain: checks the learner's own explanations against the syllabus (one request per run).
+// POST /api/ai/explain: checks the learner's own explanation against the syllabus (one request per answer, right after it is typed).
 // Signed-in users only (shared free quota), with its own per-user limit.
 import { json } from '@sveltejs/kit';
 import { GEMINI_API_KEY, GEMINI_MODELS } from '$app/env/private';
@@ -9,6 +9,9 @@ import { checkAiLimit } from '#lib/server/ai/limit.js';
 import type { RequestHandler } from './$types';
 
 export const config = { maxDuration: 60 };
+
+// One request per answer, so a run with repeats needs many: 60 per 10 minutes.
+const EXPLAIN_MAX_PER_WINDOW = 60;
 
 const fail = (status: number, code: string, message: string, headers?: HeadersInit) => json({ ok: false, code, message }, { status, headers });
 const STATUS: Record<AiError['code'], number> = { not_configured: 503, rate_limited: 429, unavailable: 503, blocked: 422, bad_output: 502, too_long: 413 };
@@ -26,7 +29,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return fail(400, 'invalid', 'Dit verzoek is niet geldig.');
 	}
 
-	const wait = checkAiLimit(`explain:${user.id}`);
+	const wait = checkAiLimit(`explain:${user.id}`, Date.now(), EXPLAIN_MAX_PER_WINDOW);
 	if (wait > 0) return fail(429, 'limit', `Even rustig aan: nakijken kan over ${Math.ceil(wait / 60)} min weer.`, { 'retry-after': String(wait) });
 
 	try {

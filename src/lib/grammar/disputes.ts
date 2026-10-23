@@ -38,8 +38,25 @@ function fail(error: { message?: string; code?: string } | null, message: string
 	throw new StorageError(message);
 }
 
+/** The owner's answer to one of your disputes (handled ones of the last 30 days). */
+export type DisputeReply = { id: string; term: string; status: 'accepted' | 'rejected'; reviewedAt: number };
+
+const ReplySchema = z.object({
+	id: z.string(),
+	term: z.string(),
+	status: z.enum(['accepted', 'rejected']),
+	reviewed_at: z.string()
+});
+
 export function createDisputesApi(client: SupabaseClient) {
 	return {
+		/** Your own handled disputes (ai/sql/008). Throws when 008 has not been run: callers treat that as "none". */
+		async myReplies(): Promise<DisputeReply[]> {
+			const { data, error } = await client.rpc('list_my_dispute_replies');
+			if (error) fail(error, 'Antwoorden op bezwaren laden is mislukt.');
+			return z.array(ReplySchema).parse(data ?? []).map((r) => ({ id: r.id, term: r.term, status: r.status, reviewedAt: Date.parse(r.reviewed_at) || 0 }));
+		},
+
 		async submit(input: DisputeInput): Promise<void> {
 			const { error } = await client.rpc('submit_explain_dispute', {
 				p_ref: input.ref ?? null,

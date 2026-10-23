@@ -34,7 +34,8 @@ export type BankQuestion = {
 };
 
 /** What a normal user gets: approved questions only, without the owner's notes. */
-export type ApprovedQuestion = { id: string; ref: string; kind: QuestionKind; prompt: string; translation: string };
+/** `explanation`: why the answer is right (written with the question, checked by the owner); empty when there is none. */
+export type ApprovedQuestion = { id: string; ref: string; kind: QuestionKind; prompt: string; translation: string; explanation: string };
 
 /** A question as it comes out of the generator, before it is saved. */
 export type Draft = { ref: string; kind: QuestionKind; prompt: string; translation: string; explanation: string; checkOk: boolean | null; checkNote: string };
@@ -223,7 +224,8 @@ export function bankRows(questions: readonly ApprovedQuestion[]): ConceptRow[] {
 	return questions.flatMap((question) => {
 		const found = resolveItem(question.ref);
 		if (!found) return [];
-		return [{ prompt: questionPrompt(question), answers: answerVariants(found.item.term), ref: question.ref }];
+		const tip = question.explanation.trim();
+		return [{ prompt: questionPrompt(question), answers: answerVariants(found.item.term), ref: question.ref, ...(tip ? { tip } : {}) }];
 	});
 }
 
@@ -249,7 +251,9 @@ export const ApprovedRowSchema = z.object({
 	ref: z.string().min(1),
 	kind: z.enum(QUESTION_KINDS),
 	prompt: z.string().min(1),
-	translation: optionalText
+	translation: optionalText,
+	// Older databases (before 008) do not send it.
+	explanation: z.string().nullish().transform((value) => value ?? '')
 });
 
 export function toBankQuestion(row: z.infer<typeof BankRowSchema>): BankQuestion {
@@ -268,7 +272,7 @@ export function toBankQuestion(row: z.infer<typeof BankRowSchema>): BankQuestion
 }
 
 export function toApprovedQuestion(row: z.infer<typeof ApprovedRowSchema>): ApprovedQuestion {
-	return { id: row.id, ref: row.ref, kind: row.kind, prompt: row.prompt, translation: row.translation };
+	return { id: row.id, ref: row.ref, kind: row.kind, prompt: row.prompt, translation: row.translation, explanation: row.explanation };
 }
 
 /** A Dutch message, or null, for an edit by the owner. */

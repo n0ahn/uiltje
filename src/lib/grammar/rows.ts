@@ -3,7 +3,8 @@
 // Everything here is deterministic: no AI, so these rows are correct by construction (they are the syllabus text).
 import type { GrammarExample, GrammarItem } from './types';
 
-export type ConceptRow = { prompt: string; answers: string[]; ref?: string };
+/** `tip`: shown after a wrong answer (e.g. the owner's explanation of an approved question). */
+export type ConceptRow = { prompt: string; answers: string[]; ref?: string; tip?: string };
 
 /**
  * What the learner may type for a term, and how the answer is shown (answers are shown joined by ", ").

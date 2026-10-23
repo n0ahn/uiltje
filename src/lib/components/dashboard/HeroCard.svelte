@@ -2,7 +2,6 @@
 	import type { RecentPractice } from '../../dashboard/data';
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
-	import Deco from '../ui/Deco.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import Owl from '../ui/Owl.svelte';
 	import ProgressBar from '../ui/ProgressBar.svelte';
@@ -32,8 +31,6 @@
 		</div>
 		<!-- illustration fades in from the left so it blends into the card -->
 		<HeroScene class="scene absolute inset-y-0 right-0 hidden h-full w-[58%] sm:block" />
-		<Deco kind="sparkle" size={18} class="absolute top-5 right-[52%] z-10 hidden sm:block" />
-		<Deco kind="sparkle" size={12} delay={1.2} class="absolute right-6 bottom-5 z-10 hidden sm:block" />
 	{:else if loading}
 		<div class="flex min-h-55 flex-col justify-center gap-3 p-6 sm:max-w-[62%] sm:p-8" role="status" aria-busy="true">
 			<span class="sr-only">Laden…</span>

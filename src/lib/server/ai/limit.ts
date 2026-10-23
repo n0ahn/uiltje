@@ -4,10 +4,10 @@ const WINDOW_MS = 10 * 60_000;
 const MAX_PER_WINDOW = 8;
 const hits = new Map<string, number[]>();
 
-/** Returns 0 when allowed (and counts the request), else the seconds until the user may try again. */
-export function checkAiLimit(userId: string, now = Date.now()): number {
+/** Returns 0 when allowed (and counts the request), else the seconds until the user may try again. `max` overrides the default per 10 minutes ("Uitleggen" checks one answer per request). */
+export function checkAiLimit(userId: string, now = Date.now(), max = MAX_PER_WINDOW): number {
 	const recent = (hits.get(userId) ?? []).filter((t) => now - t < WINDOW_MS);
-	if (recent.length >= MAX_PER_WINDOW) {
+	if (recent.length >= max) {
 		hits.set(userId, recent);
 		return Math.ceil((recent[0]! + WINDOW_MS - now) / 1000);
 	}

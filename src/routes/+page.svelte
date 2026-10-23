@@ -8,7 +8,6 @@
 	import StreakCard from '#lib/components/dashboard/StreakCard.svelte';
 	import SubjectCard from '#lib/components/dashboard/SubjectCard.svelte';
 	import TopBar from '#lib/components/shell/TopBar.svelte';
-	import Deco from '#lib/components/ui/Deco.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import CardSkeleton from '#lib/components/skeleton/CardSkeleton.svelte';
 	import RecentSetsSkeleton from '#lib/components/skeleton/RecentSetsSkeleton.svelte';
@@ -83,6 +82,5 @@
 		<StreakCard loading={dash === null && !overview.failed} days={dash?.streak ?? 0} week={dash?.week ?? emptyWeek} />
 		<FriendsMini signedIn={!!data.user} />
 		<div class="md:col-span-2 xl:col-span-1"><QuickActions /></div>
-		<Deco kind="sprig" size={44} class="absolute -right-2 -bottom-10 hidden xl:block" />
 	</aside>
 </div>

@@ -253,6 +253,12 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 			return data?.is_public === true;
 		},
 
+		async listPublicSetIds() {
+			const { data, error } = await client.from('sets').select('id').eq('owner_id', me()).eq('is_public', true);
+			if (error) fail(error);
+			return (data ?? []).map((row) => String((row as { id: unknown }).id));
+		},
+
 		async setVisibility(setId, isPublic) {
 			const { error } = await client.from('sets').update({ is_public: isPublic }).eq('owner_id', me()).eq('id', setId);
 			if (error) fail(error, 'Zichtbaarheid aanpassen is niet gelukt.');

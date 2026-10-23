@@ -13,6 +13,7 @@
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
 	import Icon from '../ui/Icon.svelte';
+	import PracticeMenu from '../practice/PracticeMenu.svelte';
 
 	// Ready-made sets from the verified catalogues. "Toevoegen" makes your own copy in Mijn sets; you can change it freely.
 	const storage = getStorage();
@@ -80,6 +81,7 @@
 				<p class="text-xs text-text-muted">Bron: {entry.source}</p>
 				<div class="mt-auto flex flex-wrap items-center gap-3">
 					{#if added[entry.id]}
+						<PracticeMenu href="/sets/{added[entry.id]}/practice" size="md" explain={entry.lists.some((list) => list.kind === 'concept' && list.rows.length > 0)} />
 						<Button variant="secondary" onclick={() => goto(`/sets/${added[entry.id]}`)}><Icon name="check" size={18} /> Toegevoegd · openen</Button>
 					{:else}
 						<Button disabled={addingId !== null} onclick={() => add(entry)}><Icon name="plus" size={18} /> {addingId === entry.id ? 'Toevoegen…' : 'Toevoegen aan mijn sets'}</Button>

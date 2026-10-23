@@ -131,6 +131,8 @@ export interface SocialApi {
 	/** Own profile or a friend's, by username. null when it does not exist or you are not friends. */
 	getProfile(username: string): Promise<ProfileView | null>;
 	getVisibility(setId: string): Promise<boolean>;
+	/** Ids of your own sets that friends can see (one request, for the overview). */
+	listPublicSetIds(): Promise<string[]>;
 	setVisibility(setId: string, isPublic: boolean): Promise<void>;
 	/** A public set of a friend (or your own set), ready to be copied. */
 	getPublicSet(setId: string): Promise<SharedSet | null>;

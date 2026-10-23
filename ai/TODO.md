@@ -155,4 +155,17 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Uitleggen: no self-rating, AI check with the set's strictness, "Ik ben het er niet mee eens" (SQL 007)
 - [x] `/review` for the owner: Vragenbank + Voorstellen + Bezwaren in one page
 - [ ] Run `ai/sql/007_explain_disputes.sql`, then try: Uitleggen as strict and relaxed, send a dispute, resolve it on /review
-- [ ] Tell a learner when their dispute was handled (now the owner only marks it accepted/rejected)
+- [x] Tell a learner when their dispute was handled (bell notification, SQL 008)
+- [x] Explanation after a wrong answer in the runners (`RowNote`: row tip + official explanation via `ref`); not in BlockBoard (rijtjes) or test mode
+- [x] Approved AI-question explanations become the row `tip` (SQL 008 returns `explanation`)
+- [x] Visibility: "Openbaar" chip on `/sets` cards and the set page, toggle in the ⋮ menus (accounts only)
+- [x] Uitleggen on kant-en-klare sets: "Oefenen" menu (with Uitleggen for concept lists) on the library cards after adding
+- [ ] Run `ai/sql/008_notes_and_replies.sql`, then try: wrong answer shows the note, dispute reply in the bell, visibility toggle, Uitleggen from /bibliotheek
+- [ ] Sets added from the library before this update do not have the new tips (add them again or edit)
+
+## Uitleggen: nakijken per begrip (2026-10-24)
+- [x] Uitleggen: the AI checks every answer right after "Laat zien" (goed / bijna / niet), not at the end
+- [x] "Bijna": the learner decides ("Ik had het goed" / "Nog niet goed")
+- [x] "Bezwaar" (small button on a "niet"): optional note, sent to the owner (SQL 007), the answer counts as goed at once
+- [x] A begrip that ends "niet" comes back later in the run (after 3 other begrippen), max 3 attempts per begrip
+- [ ] Try in the real app: a run with wrong answers (they come back), a "bijna" choice, an objection (check /review > Bezwaren), a failed check (offline) and "Opnieuw nakijken"

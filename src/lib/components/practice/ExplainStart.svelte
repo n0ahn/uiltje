@@ -51,7 +51,7 @@
 	</div>
 
 	<Card class="flex flex-col gap-5 sm:p-8">
-		<p class="text-text-muted">Je krijgt een stijlfiguur of regel en legt in je eigen woorden uit wat het is. Daarna zie je de uitleg uit de syllabus. Aan het eind kijkt de AI je antwoorden na; je beoordeelt jezelf dus niet. Ben je het er niet mee eens, dan kun je bezwaar indienen. Dit telt niet mee voor je voortgang.</p>
+		<p class="text-text-muted">Je krijgt een stijlfiguur of regel en legt in je eigen woorden uit wat het is. Daarna zie je de uitleg uit de syllabus en kijkt de AI je antwoord meteen na. Twijfelt de AI, dan beslis jij zelf. Vind je dat de AI ongelijk heeft, dan kun je bezwaar maken: je antwoord telt dan als goed en de beheerder kijkt ernaar. Begrippen die nog niet goed zijn, komen later in de oefening terug. Dit telt niet mee voor je voortgang.</p>
 
 		{#if !auth.user}
 			<p class="rounded-tile bg-surface-2 p-3 font-semibold" role="status">Log in om Uitleggen te gebruiken: de AI moet je antwoorden kunnen nakijken.</p>

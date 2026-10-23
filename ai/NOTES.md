@@ -255,3 +255,23 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 - Disputes: "Ik ben het er niet mee eens" on every non-"goed" result sends the answer, AI verdict and a note through `submit_explain_dispute` (`ai/sql/007_explain_disputes.sql`, 30 per user per day, table readable by the owner only). Client: `grammar/disputes.ts`.
 - `/review` (owner): tabs Vragenbank (the old `/vragen`, `QuestionBankView embedded`), Voorstellen (moved out of `/suggesties`, `SuggestionsReview`) and Bezwaren (`DisputesReview`). `/vragen` redirects to `/review?tab=vragen`; `/suggesties` only shows your own suggestions (plus a link to review for the owner). Profile menu: "Review" replaces "Vragenbank". Run SQL 007.
 - Not seen in a browser or run against Supabase/Gemini.
+
+## Notes after a wrong answer, dispute replies, visibility (2026-10-24)
+- `practice/RowNote.svelte`: after a wrong answer in `VocabRunner` (choice + typed) and `CardRunner` (not flashcards) it shows the row's `tip` ("Uitleg") and, when the row has a `ref`, the official explanation from the catalogue. BlockBoard (rijtjes) and test mode are untouched.
+- `StudyRow.tip` is carried by `ConceptRow.tip`, `bankRows` (tip = approved question's `explanation`), `toDraftRow` and `entryToStudySet`. `ApprovedRowSchema.explanation` is nullish, so a database without SQL 008 still works.
+- `ai/sql/008_notes_and_replies.sql`: `list_approved_questions` now also returns `explanation`; new `list_my_dispute_replies()` (own handled disputes, last 30 days, max 20).
+- Notification kind `dispute-reply`: `state/notifications.svelte.ts` loads the replies live (ids `dr:<id>`), errors ignored.
+- Visibility: `SocialApi.listPublicSetIds()`; `/sets` shows an "Openbaar" chip and a ⋮ toggle, the set page the same via `getVisibility`.
+- Uitleggen on kant-en-klare sets: library entries already build `concept` lists with `ref` rows, so the engine works (checked with tsx: 76/16/95/29 rows, all refs resolve, stamtijden has no concept rows). The library cards now show `PracticeMenu` after adding, with Uitleggen when a concept list exists.
+- svelte-check on a scratch copy: no new errors. Not run against Supabase/Gemini or in a browser.
+
+
+## Uitleggen: check per begrip, choice on "bijna", objection per begrip, repeats (2026-10-24)
+- Flow per begrip: type -> "Laat zien en nakijken" -> the syllabus text shows at once and `POST /api/ai/explain` is called with ONE item (so the check runs while the learner reads). Verdict slot has reserved height (`min-h-24`); the action row never moves, the objection form only grows below it.
+- Verdicts: `goed` -> counts, `niet` -> wrong, `bijna` -> the learner must choose ("Ik had het goed" / "Nog niet goed") before they can continue. Blank answers are `niet` without a request and cannot be objected to.
+- Objection ("Bezwaar", only on an AI `niet` with a real answer): optional note (<= 600), `createDisputesApi.submit` (SQL 007, owner reads it in `/review` > Bezwaren). Only when the submit succeeds the attempt becomes `bezwaar` and counts as goed; on an error (offline, 30 per day limit) it stays `niet` and the message shows. A `bijna` the learner decided on cannot be objected to.
+- Repeats: `ExplainSession` is now queue based. A begrip that ends `niet` is put back after `REPEAT_GAP` (3) other begrippen (or at the end), at most `MAX_ATTEMPTS` (3) attempts so a run always ends. Progress bar = begrippen done / total; chip "Opnieuw" on a repeat. Result screen: meteen goed / goed na herhalen / nog niet gelukt / bezwaar, with the syllabus text for the ones that needed repeats.
+- API change: `ExplainSession.rate/applyAi/toGrade/outcomes` replaced by `submit/applyVerdict/choose/acceptObjection/canObject/needsChoice/canContinue/willRepeat/next/results/summary`. `explain-client.ts`, the server grading and the disputes API are unchanged.
+- Rate limit: one request per answer, so `checkAiLimit` got an optional `max` and the explain route allows 60 per 10 minutes (was the shared 8).
+- Known: `ExplainRequestSchema` has no `strict` field, so the `strict` flag the runner sends is dropped and the server prompt judges on meaning only (the "strict and relaxed mode" in the 2026-10-24 notes above is not in `server/ai/explain.ts` of this copy). Not changed here.
+- Engine checked with Node (scenarios: goed, niet -> repeat after 3, bijna + choice, objection, blank answer, 3-attempt stop). svelte-check NOT run (no node_modules in this copy) and nothing seen in a browser.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import PracticeMenu from '#lib/components/practice/PracticeMenu.svelte';
 	import ImportMenu from '#lib/components/editor/ImportMenu.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
@@ -12,12 +12,38 @@
 	import OptionGroup from '#lib/components/ui/OptionGroup.svelte';
 	import SelectMenu from '#lib/components/ui/SelectMenu.svelte';
 	import CardGridSkeleton from '#lib/components/skeleton/CardGridSkeleton.svelte';
+	import { auth } from '#lib/state/auth.svelte.js';
+	import { getSocial } from '#lib/social/index.js';
 	import { toasts } from '#lib/state/toast.svelte.js';
 	import { getStorage } from '#lib/storage/index.js';
 	import type { SetSummary } from '#lib/storage/adapter.js';
 
 	const storage = getStorage();
 	let sets = $state<SetSummary[] | null>(null);
+	// Sets your friends can see (accounts only). Empty for guests or while it loads.
+	let publicIds = $state<string[]>([]);
+
+	async function loadVisibility() {
+		try {
+			publicIds = await getSocial().listPublicSetIds();
+		} catch {
+			publicIds = []; // guests, offline or an older database: no chips
+		}
+	}
+	$effect(() => {
+		if (auth.client && auth.user) untrack(() => void loadVisibility());
+	});
+
+	async function toggleVisibility(id: string, title: string) {
+		const makePublic = !publicIds.includes(id);
+		try {
+			await getSocial().setVisibility(id, makePublic);
+			publicIds = makePublic ? [...publicIds, id] : publicIds.filter((p) => p !== id);
+			toasts.show(makePublic ? `"${title}" is nu zichtbaar voor je vrienden` : `"${title}" is nu privé`);
+		} catch {
+			toasts.show('Zichtbaarheid aanpassen is niet gelukt');
+		}
+	}
 
 	// Finding and ordering: search, group by folder or subject, sort.
 	type GroupBy = 'folder' | 'subject' | 'none';
@@ -264,8 +290,11 @@
 											<a href="/sets/{set.id}" class="after:absolute after:inset-0 after:content-['']">{set.title}</a>
 										{/if}
 									</h2>
-									<p class="truncate text-sm text-text-muted">
-										{set.subject}{groupBy !== 'folder' && set.folder ? ` · ${set.folder}` : ''}
+									<p class="flex items-center gap-2 text-sm text-text-muted">
+										<span class="min-w-0 truncate">{set.subject}{groupBy !== 'folder' && set.folder ? ` · ${set.folder}` : ''}</span>
+										{#if publicIds.includes(set.id)}
+											<span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 text-xs font-semibold text-text" title="Je vrienden kunnen deze set zien en kopiëren"><Icon name="eye" size={14} /> Openbaar</span>
+										{/if}
 									</p>
 									<p class="mt-1 text-sm text-text-muted">{set.listCount} {set.listCount === 1 ? 'lijst' : 'lijsten'} · {set.rowCount} {set.rowCount === 1 ? 'rij' : 'rijen'}</p>
 								</div>
@@ -278,6 +307,9 @@
 											{#snippet trigger()}<Icon name="more" size={20} />{/snippet}
 											<MenuItem icon="pencil" href="/sets/{set.id}/edit">Bewerken</MenuItem>
 											<MenuItem icon="folder" onclick={() => moveOne(set.id)}>Naar map…</MenuItem>
+											{#if auth.user}
+												<MenuItem icon={publicIds.includes(set.id) ? 'eye-off' : 'eye'} onclick={() => toggleVisibility(set.id, set.title)}>{publicIds.includes(set.id) ? 'Privé maken' : 'Zichtbaar voor vrienden'}</MenuItem>
+											{/if}
 											<MenuItem icon="trash" danger onclick={() => deleteOne(set.id)}>Verwijderen</MenuItem>
 										</Dropdown>
 									</div>

@@ -5,7 +5,9 @@
 // visible, when the tab gets focus again and after navigating (throttled). No server changes are needed.
 import { streakDays } from '../stats/stats';
 import { getStorage } from '../storage';
+import { createDisputesApi } from '../grammar/disputes';
 import { getSocial } from '../social';
+import { auth } from './auth.svelte';
 import { ANSWER_MILESTONES, STREAK_MILESTONES, WELCOME, answersNotice, streakNotice } from '../notifications/content';
 import type { AppNotification } from '../notifications/types';
 import { toasts } from './toast.svelte';
@@ -231,6 +233,21 @@ class NotificationState {
 					person: { name: c.other.displayName, avatarUrl: c.other.avatarUrl },
 					live: true
 				});
+			}
+
+			// The owner handled one of your "Uitleggen" disputes (needs ai/sql/008; without it there are simply none).
+			if (auth.client) {
+				const replies = await createDisputesApi(auth.client).myReplies().catch(() => []);
+				for (const r of replies) {
+					live.push({
+						id: `dr:${r.id}`,
+						kind: 'dispute-reply',
+						title: r.status === 'accepted' ? `Je bezwaar over "${r.term}" is terecht` : `Je bezwaar over "${r.term}" is bekeken`,
+						text: r.status === 'accepted' ? 'De AI zat ernaast. Bedankt dat je het meldde.' : 'Het oordeel van de AI blijft staan. Bedankt voor je melding.',
+						createdAt: r.reviewedAt,
+						live: true
+					});
+				}
 			}
 
 			// Somebody accepted a request you sent: they were in your outgoing list last time and are friends now.

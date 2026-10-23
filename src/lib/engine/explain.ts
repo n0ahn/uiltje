@@ -1,5 +1,7 @@
-// "Uitleggen" (phase 9): the learner explains a term in their own words, sees the official explanation from the syllabus
-// and goes on; the learner does not grade themselves: at the end the AI checks all answers in one request. Pure TS: no Svelte, DOM or network.
+// "Uitleggen" (phase 9): the learner explains a term in their own words and sees the official explanation from the syllabus.
+// The AI checks every answer right away: goed / bijna / niet. On "bijna" the learner decides; on "niet" the learner can object
+// (the answer then counts as goed and the objection goes to the owner). A term that ends "niet" comes back later in the run.
+// Pure TS: no Svelte, DOM or network.
 import { shuffle, type Rng } from './random';
 import type { PracticeRow } from './types';
 
@@ -20,7 +22,16 @@ export type ExplainItem = {
 
 export type AiVerdict = { verdict: Rating; feedback: string };
 
-export type ExplainOutcome = { item: ExplainItem; answer: string; ai: AiVerdict | null };
+/** How one attempt ended: right (by the AI, or by the learner's own call on a "bijna"), wrong, or wrong by the AI but accepted after an objection. */
+export type Resolution = 'goed' | 'niet' | 'bezwaar';
+export type Attempt = { answer: string; ai: AiVerdict | null; resolution: Resolution | null };
+
+/** A term that ended "niet" comes back after this many other terms (or at the end when fewer are left). */
+export const REPEAT_GAP = 3;
+/** Safety stop: a term is asked at most this many times, so a run always ends. */
+export const MAX_ATTEMPTS = 3;
+
+export type ExplainResult = { item: ExplainItem; attempts: readonly Attempt[]; solved: boolean; objected: boolean };
 
 export type BuildOptions = {
 	/** How many terms to ask, null = all. */
@@ -54,72 +65,129 @@ export function buildExplainItems(rows: readonly PracticeRow[], options: BuildOp
 
 export class ExplainSession {
 	readonly items: readonly ExplainItem[];
-	#answers: string[] = [];
-	#ai: (AiVerdict | null)[];
-	#index = 0;
-	/** True between "laat zien" and "volgende": the official explanation is on screen. */
+	/** Item indexes still to ask; the first one is on screen. */
+	#queue: number[];
+	#attempts: Attempt[][];
+	/** True between "laat zien" and "volgende": the official explanation is on screen and the last attempt of the current item is open. */
 	#revealed = false;
 
 	constructor(items: readonly ExplainItem[]) {
 		this.items = items;
-		this.#ai = items.map(() => null);
+		this.#queue = items.map((_, index) => index);
+		this.#attempts = items.map(() => []);
 	}
 
 	get total(): number {
 		return this.items.length;
 	}
-	get index(): number {
-		return this.#index;
+	/** Distinct terms still to go, including the one on screen. */
+	get remaining(): number {
+		return this.#queue.length;
 	}
 	get finished(): boolean {
-		return this.#index >= this.items.length;
+		return this.#queue.length === 0;
 	}
 	get revealed(): boolean {
 		return this.#revealed;
 	}
 	get current(): ExplainItem | null {
-		return this.items[this.#index] ?? null;
+		const index = this.#queue[0];
+		return index === undefined ? null : (this.items[index] ?? null);
+	}
+	/** Earlier finished attempts of the current term: more than 0 means this is a repeat. */
+	get tries(): number {
+		const index = this.#queue[0];
+		if (index === undefined) return 0;
+		const made = this.#attempts[index]!.length;
+		return this.#revealed ? made - 1 : made;
+	}
+	/** The open attempt (after "laat zien"), null while the learner is still typing. */
+	get attempt(): Attempt | null {
+		const index = this.#queue[0];
+		if (index === undefined || !this.#revealed) return null;
+		return this.#attempts[index]!.at(-1) ?? null;
 	}
 
-	/** Stores the learner's answer and shows the official explanation. An empty answer is allowed ("ik weet het niet"). */
+	/** Stores the learner's answer and shows the official explanation. An empty answer ("ik weet het niet") is judged "niet" without asking the AI. */
 	submit(answer: string): void {
-		if (this.finished || this.#revealed) return;
-		this.#answers[this.#index] = answer.trim();
+		const index = this.#queue[0];
+		if (index === undefined || this.#revealed) return;
+		const text = answer.trim();
+		this.#attempts[index]!.push(text === '' ? { answer: '', ai: { verdict: 'niet', feedback: 'Je hebt niets ingevuld.' }, resolution: 'niet' } : { answer: text, ai: null, resolution: null });
 		this.#revealed = true;
 	}
 
-	/** Done reading the official explanation: on to the next term. */
+	/** The AI's verdict for the open attempt. goed and niet settle it; bijna waits for the learner (`choose`). Ignored when the attempt already has a verdict. */
+	applyVerdict(ai: AiVerdict): void {
+		const attempt = this.attempt;
+		if (!attempt || attempt.ai) return;
+		attempt.ai = ai;
+		attempt.resolution = ai.verdict === 'goed' ? 'goed' : ai.verdict === 'niet' ? 'niet' : null;
+	}
+
+	/** True when the AI is in doubt and the learner has to decide. */
+	get needsChoice(): boolean {
+		const attempt = this.attempt;
+		return !!attempt && attempt.ai?.verdict === 'bijna' && attempt.resolution === null;
+	}
+
+	/** The learner's own call on a "bijna": was it right or not. */
+	choose(correct: boolean): void {
+		const attempt = this.attempt;
+		if (!attempt || !this.needsChoice) return;
+		attempt.resolution = correct ? 'goed' : 'niet';
+	}
+
+	/** An objection is possible against a "niet" of the AI on a real answer (not a blank one, not a "bijna" the learner decided). */
+	get canObject(): boolean {
+		const attempt = this.attempt;
+		return !!attempt && attempt.ai?.verdict === 'niet' && attempt.answer !== '' && attempt.resolution === 'niet';
+	}
+
+	/** Call after the objection reached the owner: the attempt counts as goed. */
+	acceptObjection(): void {
+		const attempt = this.attempt;
+		if (!attempt || !this.canObject) return;
+		attempt.resolution = 'bezwaar';
+	}
+
+	/** The open attempt has an outcome, so the learner may go on. */
+	get canContinue(): boolean {
+		return this.attempt?.resolution != null;
+	}
+
+	/** The current term will be asked again later (it ended "niet" and has attempts left). */
+	get willRepeat(): boolean {
+		const index = this.#queue[0];
+		const attempt = this.attempt;
+		return index !== undefined && !!attempt && attempt.resolution === 'niet' && this.#attempts[index]!.length < MAX_ATTEMPTS;
+	}
+
+	/** Done with the explanation: on to the next term. A term that ended "niet" goes back into the queue. */
 	next(): void {
-		if (this.finished || !this.#revealed) return;
+		if (!this.canContinue) return;
+		const repeat = this.willRepeat;
+		const index = this.#queue.shift()!;
 		this.#revealed = false;
-		this.#index++;
+		if (repeat) this.#queue.splice(Math.min(REPEAT_GAP, this.#queue.length), 0, index);
 	}
 
-	/** Items with an answer to send to the AI (blank answers are judged "niet" without asking). */
-	toGrade(): { index: number; item: ExplainItem; answer: string }[] {
-		return this.items.flatMap((item, index) => ((this.#answers[index] ?? '') === '' ? [] : [{ index, item, answer: this.#answers[index]! }]));
-	}
-
-	applyAi(results: readonly { index: number; verdict: Rating; feedback: string }[]): void {
-		for (const result of results) if (result.index >= 0 && result.index < this.items.length) this.#ai[result.index] = { verdict: result.verdict, feedback: result.feedback };
-		this.items.forEach((_, index) => {
-			if ((this.#answers[index] ?? '') === '' && !this.#ai[index]) this.#ai[index] = { verdict: 'niet', feedback: 'Je hebt niets ingevuld.' };
+	results(): ExplainResult[] {
+		return this.items.map((item, index) => {
+			const attempts = this.#attempts[index]!;
+			const last = attempts.at(-1);
+			return { item, attempts: attempts.map((a) => ({ ...a })), solved: last?.resolution === 'goed' || last?.resolution === 'bezwaar', objected: attempts.some((a) => a.resolution === 'bezwaar') };
 		});
 	}
 
-	outcomes(): ExplainOutcome[] {
-		return this.items.map((item, index) => ({ item, answer: this.#answers[index] ?? '', ai: this.#ai[index] ?? null }));
-	}
-
-	/** Only the AI verdict counts; a term without a verdict (check failed) counts as "niet". */
-	summary(): { goed: number; bijna: number; niet: number; total: number; checkedByAi: boolean } {
-		const counts = { goed: 0, bijna: 0, niet: 0 };
-		let checkedByAi = false;
-		for (const outcome of this.outcomes()) {
-			const verdict = outcome.ai?.verdict ?? 'niet';
-			if (outcome.ai) checkedByAi = true;
-			counts[verdict]++;
+	summary(): { total: number; firstTry: number; afterRepeat: number; unsolved: number; objections: number } {
+		const summary = { total: this.items.length, firstTry: 0, afterRepeat: 0, unsolved: 0, objections: 0 };
+		for (const result of this.results()) {
+			if (!result.solved) summary.unsolved++;
+			else if (result.attempts.length === 1) summary.firstTry++;
+			else summary.afterRepeat++;
+			if (result.objected) summary.objections++;
 		}
-		return { ...counts, total: this.items.length, checkedByAi };
+		return summary;
 	}
 }

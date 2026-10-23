@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -19,6 +19,8 @@
 	import { rowKey } from '#lib/engine/stages.js';
 	import { downloadSetJson } from '#lib/editor/json.js';
 	import { isWordKind, type StudyList, type StudyRow, type StudySet } from '#lib/schema/types.js';
+	import { auth } from '#lib/state/auth.svelte.js';
+	import { getSocial } from '#lib/social/index.js';
 	import { toasts } from '#lib/state/toast.svelte.js';
 	import { getStorage } from '#lib/storage/index.js';
 	import type { ProgressMap } from '#lib/storage/adapter.js';
@@ -34,6 +36,30 @@
 	let shareOpen = $state(false);
 	let challengeOpen = $state(false);
 	let showAll = $state<Record<string, boolean>>({});
+	// Visible to friends? null = unknown (guest, offline); accounts load it once.
+	let isPublic = $state<boolean | null>(null);
+	$effect(() => {
+		const id = set?.id;
+		if (id && auth.client && auth.user) {
+			untrack(() => {
+				getSocial()
+					.getVisibility(id)
+					.then((value) => (isPublic = value))
+					.catch(() => (isPublic = null));
+			});
+		}
+	});
+	async function toggleVisibility() {
+		if (!set || isPublic === null) return;
+		const next = !isPublic;
+		try {
+			await getSocial().setVisibility(set.id, next);
+			isPublic = next;
+			toasts.show(next ? 'Je vrienden kunnen deze set nu zien en kopiëren' : 'Deze set is nu privé');
+		} catch {
+			toasts.show('Zichtbaarheid aanpassen is niet gelukt');
+		}
+	}
 	let view = $state<'lists' | 'mastery'>('lists');
 	let selecting = $state(false);
 	const picked = new SvelteSet<string>();
@@ -206,6 +232,7 @@
 		<div class="flex flex-col gap-1">
 			<h1 class="font-heading text-3xl font-semibold">{set.title}</h1>
 			<p class="text-text-muted">
+				{#if isPublic}<span class="mr-1 inline-flex items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 align-middle text-xs font-semibold text-text"><Icon name="eye" size={14} /> Openbaar</span>{/if}
 				{set.subject}{set.folder ? ` · ${set.folder}` : ''} · {set.lists.length}
 				{onlyWords ? (set.lists.length === 1 ? 'lijst' : 'lijsten') : set.lists.length === 1 ? 'rijtje' : 'rijtjes'} · {rowTotal}
 				{onlyWords ? (onlyConcepts ? (rowTotal === 1 ? 'begrip' : 'begrippen') : rowTotal === 1 ? 'woord' : 'woorden') : rowTotal === 1 ? 'vorm' : 'vormen'}
@@ -217,6 +244,9 @@
 			<Button href="/sets/{set.id}/edit" variant="secondary" size="lg"><Icon name="pencil" size={18} /> Bewerken</Button>
 			<Dropdown label="Meer acties" variant="ghost" size="lg" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={22} />{/snippet}
+				{#if isPublic !== null}
+					<MenuItem icon={isPublic ? 'eye-off' : 'eye'} onclick={toggleVisibility}>{isPublic ? 'Privé maken' : 'Zichtbaar voor vrienden'}</MenuItem>
+				{/if}
 				<MenuItem icon="share" onclick={() => (shareOpen = true)}>Delen…</MenuItem>
 				<MenuItem icon="trophy" onclick={() => (challengeOpen = true)}>Vriend uitdagen…</MenuItem>
 				<MenuItem icon="download" onclick={() => set && downloadSetJson(set)}>Exporteren als JSON</MenuItem>

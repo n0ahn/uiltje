@@ -15,7 +15,7 @@ export function emptyDraft(): DraftSet {
 }
 
 function toDraftRow(row: ConceptRow): DraftRow {
-	return { id: newId(), prompt: row.prompt, answers: [...row.answers], tags: {}, ...(row.ref ? { ref: row.ref } : {}) };
+	return { id: newId(), prompt: row.prompt, answers: [...row.answers], tags: {}, ...(row.ref ? { ref: row.ref } : {}), ...(row.tip ? { tip: row.tip } : {}) };
 }
 
 const isBlank = (row: { prompt: string; answers: string[] }) => row.prompt.trim() === '' && row.answers.every((a) => a.trim() === '');
