@@ -80,4 +80,15 @@ export const CARD_MODE_INFO: Record<CardMode, { name: string; text: string }> = 
 	hints: { name: 'Hints', text: 'Typ het antwoord; vraag zo nodig om een hint: eerste letter, het patroon, het antwoord.' }
 };
 
+/** "Uitleggen": explain a term in your own words (only for lists of begrippen). Own start screen and runner. */
+export const EXPLAIN_MODE = 'explain';
+export const isExplainMode = (value: string | null): boolean => value === EXPLAIN_MODE;
+
+export type ExplainConfig = {
+	/** setId -> listIds. */
+	selection: Record<string, string[]>;
+	/** How many terms to ask, null = all. */
+	count: number | null;
+};
+
 export const isCardMode = (value: string | null): value is CardMode => !!value && (CARD_MODES as readonly string[]).includes(value);

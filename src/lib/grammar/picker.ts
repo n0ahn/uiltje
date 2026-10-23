@@ -2,6 +2,7 @@
 // into rows. Pure TS: the component only holds the state.
 import { CATALOGUES, getCatalogue } from './catalogues';
 import { conceptRows, customItemRows, type ConceptRow, type CustomItem } from './rows';
+import { bankRows, type ApprovedQuestion } from './questions-core';
 import type { CommunityItem } from './suggestions-core';
 import type { GrammarCatalogue, GrammarItem, GrammarSection, SectionKind } from './types';
 
@@ -55,6 +56,8 @@ export type Selection = {
 	communityIds: readonly string[];
 	custom: readonly CustomItem[];
 	withExamples: boolean;
+	/** Approved AI questions of this catalogue: added for every ticked catalogue item. */
+	bank?: readonly ApprovedQuestion[];
 };
 
 /** The rows for everything that is ticked or typed in, in a stable order: catalogue, community, own items. */
@@ -67,6 +70,7 @@ export function buildRows(selection: Selection): ConceptRow[] {
 			if (wanted.has(ref)) rows.push(...conceptRows(item, { ref, withExamples: selection.withExamples }));
 		}
 	}
+	if (selection.bank) rows.push(...bankRows(selection.bank.filter((question) => wanted.has(question.ref))));
 	const communityWanted = new Set(selection.communityIds);
 	for (const item of selection.community) {
 		if (!communityWanted.has(item.id)) continue;

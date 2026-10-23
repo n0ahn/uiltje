@@ -1,0 +1,27 @@
+<script lang="ts">
+	import { flip } from 'svelte/animate';
+	import { fly } from 'svelte/transition';
+	import { toasts } from '../../state/toast.svelte';
+	import Owl from './Owl.svelte';
+</script>
+
+<!-- Bottom center on desktop, above the tab bar on mobile. -->
+<div
+	role="status"
+	aria-live="polite"
+	class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex flex-col items-center gap-2 px-4 max-sm:bottom-[calc(64px+env(safe-area-inset-bottom)+12px)]"
+>
+	{#each toasts.items as toast (toast.id)}
+		<svelte:element
+			this={toast.href ? 'a' : 'div'}
+			href={toast.href}
+			class={['toast pointer-events-auto', toast.href && 'cursor-pointer underline-offset-2 hover:underline']}
+			onclick={toast.href ? () => toasts.dismiss(toast.id) : undefined}
+			animate:flip={{ duration: 260 }}
+			out:fly={{ y: 16, duration: 220 }}
+		>
+			<Owl size={24} pose="happy" />
+			<span>{toast.text}</span>
+		</svelte:element>
+	{/each}
+</div>

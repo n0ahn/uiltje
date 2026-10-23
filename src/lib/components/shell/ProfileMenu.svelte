@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { admin } from '../../state/admin.svelte';
 	import { auth } from '../../state/auth.svelte';
 	import { profile } from '../../state/profile.svelte';
 	import Avatar from '../ui/Avatar.svelte';
@@ -15,6 +16,10 @@
 		showSettings?: boolean;
 	};
 	let { name, username, variant, showSettings = false }: Props = $props();
+	$effect(() => {
+		void auth.user;
+		void admin.refresh();
+	});
 </script>
 
 {#if variant === 'avatar'}
@@ -44,6 +49,7 @@
 {#snippet items()}
 	{#if auth.user}<MenuItem icon="user" href="/profile">Profiel</MenuItem>{/if}
 	{#if auth.user}<MenuItem icon="sparkles" href="/suggesties">Voorstellen</MenuItem>{/if}
+	{#if admin.isAdmin}<MenuItem icon="list" href="/vragen">Vragenbank</MenuItem>{/if}
 	{#if showSettings}<MenuItem icon="sliders" href="/settings">Instellingen</MenuItem>{/if}
 	{#if auth.user}
 		<MenuItem icon="log-out" danger onclick={() => auth.signOut()}>Uitloggen</MenuItem>

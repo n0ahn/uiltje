@@ -33,7 +33,8 @@ export function flattenSources(sources: readonly PracticeSource[]): PracticeRow[
 					answers: row.answers,
 					tags: row.tags,
 					dimensions: list.dimensions,
-					settings: set.settings
+					settings: set.settings,
+					...(row.ref ? { ref: row.ref } : {})
 				});
 			}
 		}

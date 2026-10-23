@@ -3,6 +3,8 @@
 	import { CATALOGUES } from '../../grammar/catalogues';
 	import { buildRows, catalogueForSubject, DEFAULT_CATALOGUE, matchesQuery, PICKER_GROUPS, refOf, sectionsFor, type PickerGroupId } from '../../grammar/picker';
 	import { describe, type ConceptRow, type CustomItem } from '../../grammar/rows';
+	import { createQuestionsApi } from '../../grammar/questions';
+	import type { ApprovedQuestion } from '../../grammar/questions-core';
 	import { createSuggestionsApi } from '../../grammar/suggestions';
 	import type { CommunityItem } from '../../grammar/suggestions-core';
 	import type { GrammarCatalogue } from '../../grammar/types';
@@ -36,6 +38,8 @@
 	let communityIds = $state<string[]>([]);
 	let customs = $state<CustomItem[]>([]);
 	let withExamples = $state(true);
+	let withBank = $state(true);
+	let bank = $state<ApprovedQuestion[]>([]);
 	let community = $state<CommunityItem[]>([]);
 	let communityStatus = $state<'idle' | 'loading' | 'done' | 'failed'>('idle');
 	let customForm = $state({ term: '', definition: '', example: '', exampleTranslation: '' });
@@ -50,7 +54,8 @@
 			.filter((section) => section.items.length > 0)
 	);
 	const communityVisible = $derived(community.filter((item) => matchesQuery({ term: item.term, summary: item.definition }, query)));
-	const rows = $derived(buildRows({ catalogue, refs, community, communityIds, custom: customs, withExamples }));
+	const rows = $derived(buildRows({ catalogue, refs, community, communityIds, custom: customs, withExamples, bank: withBank ? bank : [] }));
+	const bankAvailable = $derived(bank.filter((q) => refs.includes(q.ref)).length);
 	const itemCount = $derived(refs.length + communityIds.length + customs.length);
 	const groupTitle = $derived(PICKER_GROUPS.find((g) => g.id === group)?.name ?? 'Grammatica');
 
@@ -78,10 +83,19 @@
 		untrack(() => {
 			community = [];
 			communityIds = [];
+			bank = [];
 			if (!client || !user) {
 				communityStatus = 'idle';
 				return;
 			}
+			// Approved AI questions (not an error when there are none or the SQL is not run yet).
+			const catalogueNow = catalogue.id;
+			createQuestionsApi(client)
+				.approved(catalogueNow)
+				.then((items) => {
+					if (catalogue.id === catalogueNow) bank = items;
+				})
+				.catch(() => {});
 			communityStatus = 'loading';
 			createSuggestionsApi(client)
 				.communityItems(wanted)
@@ -159,6 +173,16 @@
 				<span class="block text-sm text-text-muted">Je krijgt dan ook een Latijnse of Griekse zin, waarbij je de term moet noemen.</span>
 			</span>
 		</label>
+
+		{#if bank.length > 0}
+			<label class="flex cursor-pointer items-start gap-3 rounded-tile bg-surface-2 p-3">
+				<input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" bind:checked={withBank} />
+				<span class="min-w-0">
+					<span class="block font-semibold">Ook extra vragen van de AI</span>
+					<span class="block text-sm text-text-muted">Zinnen en beschrijvingen die door de beheerder zijn goedgekeurd{refs.length > 0 ? ` (${bankAvailable} voor je keuze)` : ''}. Het antwoord komt altijd uit de syllabus.</span>
+				</span>
+			</label>
+		{/if}
 
 		<div class="flex max-h-[42vh] flex-col gap-3 overflow-y-auto pr-1">
 			{#each sections as section, sectionIndex (section.id)}

@@ -24,6 +24,8 @@ export type PracticeRow = {
 	dimensions: readonly string[];
 	/** Settings of the set this row came from (sets with different strictness can be mixed). */
 	settings: SetSettings;
+	/** Grammar catalogue reference of the row (`ltc-2027/anafora`), when it came from the catalogue. */
+	ref?: string;
 };
 
 export type StageFilter = { dimension: string; value: string };

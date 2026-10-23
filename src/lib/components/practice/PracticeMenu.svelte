@@ -5,8 +5,17 @@
 
 	// The "Oefenen" button with the kinds of practice (like StudyGo). Every entry opens the practice route with `?mode=`.
 	// `extra` is appended to every link (e.g. "&selection=1"); `onbeforestart` runs on the click, before the page changes.
-	type Props = { href: string; size?: 'sm' | 'md' | 'lg'; label?: string; disabled?: boolean; extra?: string; onbeforestart?: () => void };
-	let { href, size = 'lg', label = 'Oefenen', disabled = false, extra = '', onbeforestart }: Props = $props();
+	type Props = {
+		href: string;
+		size?: 'sm' | 'md' | 'lg';
+		label?: string;
+		disabled?: boolean;
+		extra?: string;
+		onbeforestart?: () => void;
+		/** Show "Uitleggen": only for sets that have lists of begrippen (stijlfiguren, grammatica). */
+		explain?: boolean;
+	};
+	let { href, size = 'lg', label = 'Oefenen', disabled = false, extra = '', onbeforestart, explain = false }: Props = $props();
 </script>
 
 {#if disabled}
@@ -21,5 +30,6 @@
 		<MenuItem href="{href}?mode=hints{extra}" onclick={onbeforestart} icon="bulb">Hints</MenuItem>
 		<MenuItem href="{href}?mode=choice{extra}" onclick={onbeforestart} icon="list">Meerkeuze</MenuItem>
 		<MenuItem href="{href}?mode=flashcards{extra}" onclick={onbeforestart} icon="cards">Flashcards</MenuItem>
+		{#if explain}<MenuItem href="{href}?mode=explain{extra}" onclick={onbeforestart} icon="bulb" badge="Nieuw">Uitleggen</MenuItem>{/if}
 	</Dropdown>
 {/if}

@@ -20,6 +20,7 @@
 	import ProgressBar from '../ui/ProgressBar.svelte';
 	import { greekKeyboard } from '../../utils/keyboard';
 	import { CARD_MODE_INFO, type CardConfig } from './config';
+	import { wayLabelFor } from './copy';
 
 	// Flashcards, multiple choice, dictation, spelling and hints: one pass over the selected rows (engine/cards.ts).
 	type Props = {
@@ -189,7 +190,7 @@
 	onMount(() => () => typeof window !== 'undefined' && window.speechSynthesis?.cancel());
 
 	const percent = $derived(v.summary.total === 0 ? 0 : Math.round((v.summary.correct / v.summary.total) * 100));
-	const wayLabel = (way: string) => (way === 'forward' ? 'Vertaal' : way === 'reverse' ? 'Terug' : 'Luister en typ');
+	const wayLabel = (way: string, rowKey: string) => (way === 'forward' || way === 'reverse' ? wayLabelFor(way, rowByKey.get(rowKey)?.listKind) : 'Luister en typ');
 	const optionState = (i: number) => (!v.j ? '' : i === v.j.correctIndex ? 'border-sage bg-sage-soft' : 'opacity-60');
 	const marks = $derived(mode === 'spelling' && v.j && !v.j.correct && v.item ? markLetters(given, v.item.expected) : []);
 </script>
@@ -235,7 +236,7 @@
 		<ProgressBar value={v.total === 0 ? 0 : v.index / v.total} label="Voortgang" />
 
 		<Card class="flex min-h-120 flex-col gap-5 sm:p-8">
-			<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(item.way)}{mode === 'choice' ? ' · kies het goede antwoord' : ''}</p>
+			<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(item.way, item.rowKey)}{mode === 'choice' ? ' · kies het goede antwoord' : ''}</p>
 
 			{#if mode === 'flashcards'}
 				<button
@@ -244,7 +245,7 @@
 					aria-label={flipped ? 'Kaart omdraaien naar de vraag' : 'Kaart omdraaien naar het antwoord'}
 					onclick={() => (flipped = !flipped)}
 				>
-					<span class="font-heading text-3xl font-semibold">{flipped ? item.expected : item.shown}</span>
+					<span class={['font-heading font-semibold', (flipped ? item.expected : item.shown).length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{flipped ? item.expected : item.shown}</span>
 					<span class="text-sm text-text-muted">{flipped ? 'Antwoord' : 'Klik of druk op spatie om te draaien'}</span>
 				</button>
 				<div class="flex flex-wrap items-center gap-3">
@@ -252,7 +253,7 @@
 					<Button size="lg" class="min-w-44" disabled={!flipped} onclick={() => rate(true)}><Icon name="check" size={20} /> Wist ik</Button>
 				</div>
 			{:else if mode === 'choice'}
-				<p class="font-heading text-3xl font-semibold">{item.shown}</p>
+				<p class={['font-heading font-semibold', item.shown.length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{item.shown}</p>
 				<ul class="grid gap-2 sm:grid-cols-2">
 					{#each item.options ?? [] as option, i (i)}
 						<li>
@@ -274,7 +275,7 @@
 						<Button variant="secondary" size="lg" onclick={sayCurrent}><Icon name="speaker" size={22} /> Luister opnieuw</Button>
 					</div>
 				{:else}
-					<p class="font-heading text-3xl font-semibold">{item.shown}</p>
+					<p class={['font-heading font-semibold', item.shown.length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{item.shown}</p>
 				{/if}
 
 				{#if !v.j}

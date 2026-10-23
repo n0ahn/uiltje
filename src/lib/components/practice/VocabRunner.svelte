@@ -22,6 +22,7 @@
 	import ProgressBar from '../ui/ProgressBar.svelte';
 	import { greekKeyboard } from '../../utils/keyboard';
 	import type { PracticeConfig } from './config';
+	import { wayLabelFor, wordingFor } from './copy';
 	import PracticeResult from './PracticeResult.svelte';
 
 	// Vocabulary practice. Learn: rounds of 5 words (look, choose, type, type again). Test: one word at a time.
@@ -41,6 +42,11 @@
 	const allRows = selectRows(sets, config.selection, { strictness: config.strictness, onlyRowKeys: config.onlyRowKeys });
 	// svelte-ignore state_referenced_locally
 	const rows = learn ? allRows : limitRows(allRows, config.questionCount);
+	// Words are "vertaald", begrippen (stijlfiguren, grammatica) are not: the wording follows the kind of list.
+	// svelte-ignore state_referenced_locally
+	const wording = wordingFor(rows.map((r) => r.listKind));
+	// svelte-ignore state_referenced_locally
+	const kindOf = new Map(rows.map((r) => [r.key, r.listKind]));
 	// svelte-ignore state_referenced_locally
 	const direction = config.direction as VocabDirection;
 	// svelte-ignore state_referenced_locally
@@ -293,7 +299,7 @@
 	}
 
 	const progress = $derived(lv ? (lv.p.total === 0 ? 1 : lv.p.learned / lv.p.total) : tv && tv.total > 0 ? tv.index / tv.total : 0);
-	const wayLabel = (way: 'forward' | 'reverse') => (way === 'forward' ? 'Vertaal' : 'Terug');
+	const wayLabel = (way: 'forward' | 'reverse', rowKey: string) => wayLabelFor(way, kindOf.get(rowKey));
 	const optionState = (i: number) => {
 		const j = lv?.j;
 		if (!j) return '';
@@ -324,7 +330,7 @@
 		onretry={retryWrong}
 	/>
 {:else if rows.length === 0}
-	<p class="py-16 text-center text-text-muted">Er zijn geen woorden om te oefenen.</p>
+	<p class="py-16 text-center text-text-muted">{wording.empty}</p>
 {:else if lv?.q || tv?.q}
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
 		<div class="flex items-center gap-3">
@@ -355,7 +361,7 @@
 		<div>
 			<ProgressBar value={progress} label="Voortgang" />
 			{#if lv}
-				<p class="mt-1.5 text-sm text-text-muted">{lv.p.learned} van {lv.p.total} woorden geleerd</p>
+				<p class="mt-1.5 text-sm text-text-muted">{lv.p.learned} van {lv.p.total} {wording.items} geleerd</p>
 			{/if}
 		</div>
 
@@ -364,15 +370,16 @@
 				<div class="flex items-center gap-3">
 					<Owl pose="thinking" size={48} />
 					<div>
-						<h2 class="font-heading text-xl font-semibold">Nieuwe woorden</h2>
+						<h2 class="font-heading text-xl font-semibold">Nieuwe {wording.items}</h2>
 						<p class="text-sm text-text-muted">Bekijk ze goed, daarna ga je ze oefenen.</p>
 					</div>
 				</div>
 				<ul class="flex flex-col gap-2">
 					{#each lv.q.words as word (word.rowKey)}
-						<li class="flex items-center justify-between gap-4 rounded-tile bg-surface-2 px-4 py-3">
-							<span class="min-w-0 font-heading font-semibold">{word.prompt}</span>
-							<span class="min-w-0 text-right">{word.answer}</span>
+						<!-- A long explanation must not push the answer out of the row: the answer keeps its own width. -->
+						<li class="flex flex-col gap-2 rounded-tile bg-surface-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+							<span class="min-w-0 flex-1 font-heading font-semibold">{word.prompt}</span>
+							<span class="max-w-full shrink-0 self-start rounded-full bg-surface px-3 py-1 text-sm font-semibold sm:max-w-[45%] sm:self-center sm:text-right">{word.answer}</span>
 						</li>
 					{/each}
 				</ul>
@@ -381,8 +388,8 @@
 		{:else if lv?.q?.step === 'choice'}
 			{@const q = lv.q}
 			<Card class="flex min-h-120 flex-col gap-5 sm:p-8">
-				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way)} · kies het goede antwoord</p>
-				<p class="font-heading text-3xl font-semibold">{q.shown}</p>
+				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way, q.rowKey)} · kies het goede antwoord</p>
+				<p class={['font-heading font-semibold', q.shown.length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{q.shown}</p>
 				<ul class="grid gap-2 sm:grid-cols-2">
 					{#each q.options as option, i (i)}
 						<li>
@@ -412,8 +419,8 @@
 		{:else if lv?.q?.step === 'typed'}
 			{@const q = lv.q}
 			<Card class="flex min-h-120 flex-col gap-5 sm:p-8">
-				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way)} · typ het antwoord</p>
-				<p class="font-heading text-3xl font-semibold">{q.shown}</p>
+				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way, q.rowKey)} · typ het antwoord</p>
+				<p class={['font-heading font-semibold', q.shown.length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{q.shown}</p>
 
 				{#if !lv.j}
 					<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); check(); }}>
@@ -428,7 +435,7 @@
 				{:else if lv.j.correct}
 					<div class={['flex items-center gap-3 rounded-tile p-3', lv.j.assisted ? 'bg-primary-soft' : 'bg-sage-soft']} role="status">
 						<Owl pose="cheer" size={44} />
-						<p class="font-heading font-semibold">{lv.j.assisted ? 'Goed, met een hint. Dit woord komt nog terug.' : 'Goed zo!'}</p>
+						<p class="font-heading font-semibold">{lv.j.assisted ? 'Goed, met een hint. Dit komt nog terug.' : 'Goed zo!'}</p>
 					</div>
 					<p class="text-text-muted">{lv.j.expected}</p>
 					<div>
@@ -454,8 +461,8 @@
 		{:else if tv?.q}
 			{@const q = tv.q}
 			<Card class="flex min-h-120 flex-col gap-5 sm:p-8">
-				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way)}</p>
-				<p class="font-heading text-3xl font-semibold">{q.shown}</p>
+				<p class="text-sm font-semibold tracking-wide text-text-muted uppercase">{wayLabel(q.way, q.rowKey)}</p>
+				<p class={['font-heading font-semibold', q.shown.length > 70 ? 'text-xl sm:text-2xl' : 'text-3xl']}>{q.shown}</p>
 				<form class="flex flex-col gap-3" onsubmit={(e) => { e.preventDefault(); submitTest(); }}>
 					<input bind:this={inputEl} use:greekKeyboard={greek} bind:value={input} class="input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwoord" placeholder="Typ je antwoord" />
 					<div class="flex flex-wrap items-center gap-3">

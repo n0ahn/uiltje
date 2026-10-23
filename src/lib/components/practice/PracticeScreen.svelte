@@ -11,7 +11,9 @@
 	import PracticeRunner from './PracticeRunner.svelte';
 	import PracticeStart from './PracticeStart.svelte';
 	import VocabRunner from './VocabRunner.svelte';
-	import { isCardMode, type CardConfig, type PracticeConfig } from './config';
+	import ExplainRunner from './ExplainRunner.svelte';
+	import ExplainStart from './ExplainStart.svelte';
+	import { isCardMode, isExplainMode, type CardConfig, type ExplainConfig, type PracticeConfig } from './config';
 
 	// Start screen -> runner -> result, for one set or for all sets of a subject.
 	type Props = { sets: StudySet[]; title: string; backHref: string };
@@ -23,6 +25,9 @@
 	// The other modes (flashcards, meerkeuze, dictee, spelling, hints) have their own short start screen and runner.
 	const cardMode = isCardMode(modeParam) ? modeParam : null;
 	let cardConfig = $state<CardConfig | null>(null);
+	// "Uitleggen" (explain a begrip in your own words) has its own start screen and runner too.
+	const explainMode = isExplainMode(modeParam);
+	let explainConfig = $state<ExplainConfig | null>(null);
 
 	let ready = $state(false);
 	let config = $state<PracticeConfig | null>(null);
@@ -56,6 +61,12 @@
 <div class="min-h-dvh bg-bg px-4 py-6 sm:px-8 sm:py-10">
 	{#if !ready}
 		<PracticeSkeleton />
+	{:else if explainMode}
+		{#if !explainConfig}
+			<ExplainStart {sets} {title} {backHref} onstart={(c) => (explainConfig = c)} />
+		{:else}
+			{#key run}<ExplainRunner {sets} config={explainConfig} {title} {backHref} onrestart={() => { explainConfig = null; run++; }} />{/key}
+		{/if}
 	{:else if cardMode}
 		{#if !cardConfig}
 			<CardStart {sets} {title} {backHref} mode={cardMode} onstart={(c) => (cardConfig = c)} />

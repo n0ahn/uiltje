@@ -1,0 +1,921 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/nunito';
+
+/* ---------------------------------------------------------------------------
+   Design tokens (DESIGN.md §2). Light values live in @theme; dark overrides below.
+   Theme switching: data-theme="<theme id>" on <html>, always set (app.html before first paint, then theme.svelte.ts);
+   'Automatisch' resolves to a light or dark theme from prefers-color-scheme there. Theme blocks are below.
+   Components use tokens only, never hardcoded colors.
+   --------------------------------------------------------------------------- */
+@theme {
+	--font-heading: 'Fredoka Variable', ui-rounded, 'Nunito Variable', system-ui, sans-serif;
+	--font-body: 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+	--font-greek: 'Nunito Variable', 'Noto Serif', serif;
+
+	--color-bg: #f7f0e1;
+	--color-surface: #fff9ec;
+	--color-surface-2: #f1e6d0;
+	--color-border: #e4d5b8;
+	--color-text: #4a3b35;
+	--color-text-muted: #765f52;
+	--color-ink: #6e4f6b;
+	--color-primary: #c97b55;
+	--color-primary-edge: #a85f3e;
+	--color-primary-soft: #f3d9c8;
+	--color-primary-text: #8a4a2d;
+	/* Filled primary buttons: a touch darker than --color-primary so cream text reaches 4.5:1 */
+	--color-primary-btn: #ad613a;
+	--color-primary-btn-edge: #8a4a2d;
+	--color-on-primary: #fffdf6;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #dde8d6;
+	--color-wheat: #d8b98a;
+	--color-clay: #b88b6a;
+	--color-rose: #e8a5a0;
+	--color-rose-edge: #c98079;
+	--color-rose-soft: #f7dad5;
+	--color-sky: #7fa2c4;
+	--color-lilac: #9a86b8;
+	--color-flame: #e88b3c;
+	--color-mint: #bcebd2;
+	--color-pink: #ffa8dc;
+	--color-cream: #fff4de;
+	--color-cream-edge: #d9c5a0;
+	--color-on-accent: #2f2622;
+
+	/* Mascot (fixed in both themes so the owl always looks like the owl) */
+	--color-owl: #a9805f;
+	--color-owl-dark: #8c6648;
+	--color-belly: #fff4de;
+	--color-beak: #e0955a;
+	--color-pupil: #3a2b25;
+	--color-glint: #ffffff;
+
+	--radius-card: 24px;
+	--radius-panel: 28px;
+	--radius-button: 18px;
+	--radius-input: 16px;
+	--radius-tile: 14px;
+
+	--shadow-color: rgb(74 59 53 / 0.22);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+
+	--ease-cozy: cubic-bezier(0.2, 0.8, 0.2, 1);
+	/* Gentle overshoot for things that pop: buttons letting go, switches, selections, sheets */
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--shadow-lift: 0 14px 26px -12px var(--shadow-color);
+}
+
+:root {
+	--glow-opacity: 0.18; /* lamp glow in illustrations */
+	color-scheme: light;
+}
+
+/* Phones: Tailwind's small sizes are too small to read comfortably at arm's length, so text-xs and text-sm
+   grow a step. Every text-xs/text-sm in the app follows; do not use fixed px/rem sizes for text. */
+@media (max-width: 639px) {
+	:root {
+		--text-xs: 0.8125rem;
+		--text-xs--line-height: 1.2rem;
+		--text-sm: 0.9375rem;
+		--text-sm--line-height: 1.4rem;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Themes. `data-theme` on <html> picks one (theme.svelte.ts); the same attribute on any element scopes a theme
+   to it (used by the theme picker previews). Light "Crème" is the default and lives in @theme above; its
+   block here only exists so it can be scoped. Every theme must keep text 4.5:1 on its surfaces.
+   --------------------------------------------------------------------------- */
+/* Crème (light) */
+[data-theme='light'] {
+	color-scheme: light;
+	--color-bg: #f7f0e1;
+	--color-surface: #fff9ec;
+	--color-surface-2: #f1e6d0;
+	--color-border: #e4d5b8;
+	--color-text: #4a3b35;
+	--color-text-muted: #765f52;
+	--color-ink: #6e4f6b;
+	--color-primary: #c97b55;
+	--color-primary-edge: #a85f3e;
+	--color-primary-soft: #f3d9c8;
+	--color-primary-text: #8a4a2d;
+	--color-primary-btn: #ad613a;
+	--color-primary-btn-edge: #8a4a2d;
+	--color-on-primary: #fffdf6;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #dde8d6;
+	--color-rose-soft: #f7dad5;
+	--color-mint: #bcebd2;
+	--color-cream: #fff4de;
+	--color-cream-edge: #d9c5a0;
+	--shadow-color: rgb(74 59 53 / 0.22);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+	--glow-opacity: 0.18;
+}
+
+/* Cacao (dark) */
+[data-theme='dark'] {
+	color-scheme: dark;
+	--color-bg: #1f1815;
+	--color-surface: #2b221e;
+	--color-surface-2: #372c26;
+	--color-border: #4b3d35;
+	--color-text: #f6ebd9;
+	--color-text-muted: #c2ae9b;
+	--color-ink: #ecd6b0;
+	--color-primary: #e29a6f;
+	--color-primary-edge: #a8613f;
+	--color-primary-soft: #4f3427;
+	--color-primary-text: #f5be9b;
+	--color-primary-btn: #e29a6f;
+	--color-primary-btn-edge: #a8613f;
+	--color-on-primary: #2a1a12;
+	--color-sage: #a2c09d;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #2f3f2e;
+	--color-rose-soft: #4f302c;
+	--color-mint: #2d4a3b;
+	--color-cream: #3a2f29;
+	--color-cream-edge: #4b3d35;
+	--shadow-color: rgb(0 0 0 / 0.5);
+	--shadow-card: 0 8px 22px -10px var(--shadow-color), inset 0 1px 0 rgb(255 255 255 / 0.05);
+	--glow-opacity: 0.5;
+}
+
+/* Salie (light) */
+[data-theme='salie'] {
+	color-scheme: light;
+	--color-bg: #eef2e3;
+	--color-surface: #f9fbf1;
+	--color-surface-2: #e2e9d2;
+	--color-border: #cbd8b6;
+	--color-text: #2f3d2c;
+	--color-text-muted: #566650;
+	--color-ink: #4c6a54;
+	--color-primary: #6f9a62;
+	--color-primary-edge: #527a49;
+	--color-primary-soft: #d9e8cc;
+	--color-primary-text: #37602f;
+	--color-primary-btn: #4f7f49;
+	--color-primary-btn-edge: #37602f;
+	--color-on-primary: #fbfff4;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #d5e6cb;
+	--color-rose-soft: #f7dad5;
+	--color-mint: #c3ecd3;
+	--color-cream: #f6f8e8;
+	--color-cream-edge: #c5d3ae;
+	--shadow-color: rgb(48 70 44 / 0.2);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+	--glow-opacity: 0.18;
+}
+
+/* Lavendel (light) */
+[data-theme='lavendel'] {
+	color-scheme: light;
+	--color-bg: #f1edfa;
+	--color-surface: #fbf9ff;
+	--color-surface-2: #e6dff4;
+	--color-border: #d3c8ea;
+	--color-text: #372f4d;
+	--color-text-muted: #5f5679;
+	--color-ink: #65498b;
+	--color-primary: #9275c4;
+	--color-primary-edge: #6f55a3;
+	--color-primary-soft: #e5dcf5;
+	--color-primary-text: #5b3f90;
+	--color-primary-btn: #7655b0;
+	--color-primary-btn-edge: #563a88;
+	--color-on-primary: #fffdff;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #dde8d6;
+	--color-rose-soft: #f7dad8;
+	--color-mint: #c6ecd8;
+	--color-cream: #f6f1ff;
+	--color-cream-edge: #cbbfe3;
+	--shadow-color: rgb(60 44 100 / 0.2);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+	--glow-opacity: 0.18;
+}
+
+/* Zeemist (light) */
+[data-theme='zeemist'] {
+	color-scheme: light;
+	--color-bg: #e8f1f5;
+	--color-surface: #f6fbfd;
+	--color-surface-2: #d9e8ef;
+	--color-border: #bfd6e2;
+	--color-text: #25404d;
+	--color-text-muted: #4b6878;
+	--color-ink: #3d6882;
+	--color-primary: #5f9bbd;
+	--color-primary-edge: #42789a;
+	--color-primary-soft: #d3e6f0;
+	--color-primary-text: #2c6685;
+	--color-primary-btn: #3b7898;
+	--color-primary-btn-edge: #295a76;
+	--color-on-primary: #fbffff;
+	--color-sage: #8fae8b;
+	--color-sage-edge: #6f916b;
+	--color-sage-soft: #dae9dc;
+	--color-rose-soft: #f7dcd8;
+	--color-mint: #c2ecd9;
+	--color-cream: #f0f8fb;
+	--color-cream-edge: #b9d3e0;
+	--shadow-color: rgb(30 70 95 / 0.2);
+	--shadow-card: 0 6px 18px -8px var(--shadow-color);
+	--glow-opacity: 0.18;
+}
+
+/* Middernacht (dark) */
+[data-theme='middernacht'] {
+	color-scheme: dark;
+	--color-bg: #141829;
+	--color-surface: #1d2340;
+	--color-surface-2: #283052;
+	--color-border: #38426b;
+	--color-text: #eaedf9;
+	--color-text-muted: #a9b1d0;
+	--color-ink: #c9cffa;
+	--color-primary: #93a8f4;
+	--color-primary-edge: #5f74c4;
+	--color-primary-soft: #2c3562;
+	--color-primary-text: #b9c6fb;
+	--color-primary-btn: #93a8f4;
+	--color-primary-btn-edge: #5f74c4;
+	--color-on-primary: #11163a;
+	--color-sage: #9cc4a8;
+	--color-sage-edge: #6a9a78;
+	--color-sage-soft: #233a35;
+	--color-rose-soft: #472c3c;
+	--color-mint: #21423f;
+	--color-cream: #2a3256;
+	--color-cream-edge: #38426b;
+	--shadow-color: rgb(0 0 0 / 0.5);
+	--shadow-card: 0 8px 22px -10px var(--shadow-color), inset 0 1px 0 rgb(255 255 255 / 0.05);
+	--glow-opacity: 0.5;
+}
+
+/* Bos (dark) */
+[data-theme='bos'] {
+	color-scheme: dark;
+	--color-bg: #121c15;
+	--color-surface: #1b2a20;
+	--color-surface-2: #25372b;
+	--color-border: #34493a;
+	--color-text: #e8f1e1;
+	--color-text-muted: #a8bda9;
+	--color-ink: #d3e8c7;
+	--color-primary: #a9cf86;
+	--color-primary-edge: #6e9a52;
+	--color-primary-soft: #2b4129;
+	--color-primary-text: #c4e3a6;
+	--color-primary-btn: #a9cf86;
+	--color-primary-btn-edge: #6e9a52;
+	--color-on-primary: #11200c;
+	--color-sage: #9dc29a;
+	--color-sage-edge: #6b9a69;
+	--color-sage-soft: #27402c;
+	--color-rose-soft: #47302c;
+	--color-mint: #24473a;
+	--color-cream: #2a3d30;
+	--color-cream-edge: #34493a;
+	--shadow-color: rgb(0 0 0 / 0.5);
+	--shadow-card: 0 8px 22px -10px var(--shadow-color), inset 0 1px 0 rgb(255 255 255 / 0.05);
+	--glow-opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+@layer base {
+	html {
+		/* Always reserve the scrollbar's space, so pages do not shift sideways when they become scrollable. */
+		scrollbar-gutter: stable;
+		background: var(--color-bg);
+		color: var(--color-text);
+		font-family: var(--font-body);
+		-webkit-text-size-adjust: 100%;
+		-webkit-tap-highlight-color: transparent;
+		text-rendering: optimizeLegibility;
+	}
+	a,
+	button,
+	label,
+	summary {
+		touch-action: manipulation;
+	}
+	body {
+		min-height: 100dvh;
+	}
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-heading);
+		letter-spacing: 0.01em;
+		line-height: 1.2;
+	}
+	h1 {
+		font-size: 1.65rem;
+		font-weight: 700;
+	}
+	h2 {
+		font-size: 1.3rem;
+		font-weight: 600;
+	}
+	h3 {
+		font-size: 1.1rem;
+		font-weight: 600;
+	}
+	@media (min-width: 640px) {
+		h1 {
+			font-size: 2rem;
+		}
+		h2 {
+			font-size: 1.5rem;
+		}
+		h3 {
+			font-size: 1.2rem;
+		}
+	}
+	:focus-visible {
+		outline: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+		outline-offset: 2px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Chunky button (DESIGN.md §3.1): .btn + data-variant / data-size / data-icon
+   --------------------------------------------------------------------------- */
+@layer components {
+	.btn {
+		--btn-fill: var(--color-primary-btn);
+		--btn-edge: var(--color-primary-btn-edge);
+		--btn-text: var(--color-on-primary);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 44px;
+		padding: 0 1.25rem;
+		border: 2.5px solid var(--color-ink);
+		border-radius: var(--radius-button);
+		background: var(--btn-fill);
+		color: var(--btn-text);
+		font-family: var(--font-heading);
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		line-height: 1;
+		text-decoration: none;
+		white-space: nowrap;
+		cursor: pointer;
+		user-select: none;
+		box-shadow: 0 5px 0 0 var(--btn-edge);
+		transition:
+			transform 260ms var(--ease-spring),
+			box-shadow 260ms var(--ease-spring),
+			background-color 160ms var(--ease-cozy);
+	}
+	.btn[data-variant='secondary'] {
+		--btn-fill: var(--color-cream);
+		--btn-edge: var(--color-cream-edge);
+		--btn-text: var(--color-ink);
+	}
+	.btn[data-variant='sage'] {
+		--btn-fill: var(--color-sage);
+		--btn-edge: var(--color-sage-edge);
+		--btn-text: var(--color-on-accent);
+	}
+	.btn[data-variant='danger'] {
+		--btn-fill: var(--color-rose);
+		--btn-edge: var(--color-rose-edge);
+		--btn-text: var(--color-on-accent);
+	}
+	.btn[data-variant='ghost'] {
+		--btn-text: var(--color-ink);
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+	.btn[data-size='sm'] {
+		min-height: 36px;
+		padding: 0 1rem;
+		font-size: 0.9rem;
+	}
+	.btn[data-size='lg'] {
+		min-height: 56px;
+		padding: 0 1.75rem;
+		font-size: 1.1rem;
+	}
+	.btn[data-icon] {
+		width: 44px;
+		padding: 0;
+		border-radius: 22%;
+	}
+	.btn[data-icon][data-size='sm'] {
+		width: 36px;
+	}
+	.btn[data-icon][data-size='lg'] {
+		width: 56px;
+	}
+	.btn:hover:not(:disabled):not([aria-disabled='true']) {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 0 0 var(--btn-edge);
+	}
+	.btn:active:not(:disabled):not([aria-disabled='true']) {
+		transform: translateY(4px);
+		box-shadow: 0 1px 0 0 var(--btn-edge);
+		/* press down fast, let go with a little spring (the transition above) */
+		transition-duration: 70ms;
+	}
+	/* Fingers are bigger than cursors: small buttons get a comfortable target on touch screens. */
+	@media (pointer: coarse) {
+		.btn[data-size='sm'] {
+			min-height: 42px;
+		}
+		.btn[data-icon][data-size='sm'] {
+			width: 42px;
+		}
+	}
+	.btn[data-variant='ghost']:hover:not(:disabled) {
+		transform: none;
+		box-shadow: none;
+		text-decoration: underline;
+	}
+	.btn[data-variant='ghost']:active:not(:disabled) {
+		transform: none;
+		box-shadow: none;
+	}
+	.btn:disabled,
+	.btn[aria-disabled='true'] {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	/* -----------------------------------------------------------------------
+	   Answer input (DESIGN.md §3.5)
+	   ----------------------------------------------------------------------- */
+	.input {
+		width: 100%;
+		min-height: 3rem;
+		padding: 0 1rem;
+		border: 2px solid var(--color-border);
+		border-radius: var(--radius-input);
+		background: var(--color-surface-2);
+		color: var(--color-text);
+		font-family: var(--font-body);
+		font-size: 1rem;
+		font-weight: 600;
+		transition:
+			border-color 160ms var(--ease-cozy),
+			background-color 160ms var(--ease-cozy),
+			box-shadow 220ms var(--ease-cozy);
+	}
+	.input::placeholder {
+		color: var(--color-text-muted);
+		opacity: 0.6;
+	}
+	.input:focus {
+		border-color: var(--color-primary);
+		background: var(--color-surface);
+		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 20%, transparent);
+	}
+	/* 16px minimum on phones: smaller text makes iOS zoom into the field */
+	@media (max-width: 639px) {
+		.input {
+			font-size: max(1rem, 16px);
+		}
+	}
+	.input[data-answer] {
+		min-height: 3.25rem;
+		font-size: 1.25rem;
+	}
+	.input[data-state='correct'] {
+		border-color: var(--color-sage);
+		background: var(--color-sage-soft);
+		padding-right: 2.75rem;
+		animation: correct-glow 700ms var(--ease-cozy);
+	}
+	.input[data-state='wrong'] {
+		border-color: var(--color-rose);
+		background: var(--color-rose-soft);
+		animation: wiggle 360ms var(--ease-cozy);
+	}
+	.input[data-state='revealed'] {
+		border-style: dashed;
+		color: var(--color-text-muted);
+	}
+
+	/* -----------------------------------------------------------------------
+	   Modal / sheet (DESIGN.md §3.8) and toast (§3.7)
+	   ----------------------------------------------------------------------- */
+	.modal {
+		width: min(520px, calc(100vw - 2rem));
+		max-height: calc(100dvh - 4rem);
+		margin: auto;
+		padding: 0;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-panel);
+		background: var(--color-surface);
+		color: var(--color-text);
+		box-shadow: var(--shadow-card);
+		overflow: auto;
+		/* Opens and closes with a soft rise and fade. The <dialog> stays displayed while it animates out
+		   (display + overlay are discrete transitions); browsers without support just skip the animation. */
+		opacity: 0;
+		transform: translateY(16px) scale(0.97);
+		transition:
+			opacity 200ms var(--ease-cozy),
+			transform 340ms var(--ease-spring),
+			overlay 340ms allow-discrete,
+			display 340ms allow-discrete;
+	}
+	.modal[open] {
+		opacity: 1;
+		transform: none;
+		@starting-style {
+			opacity: 0;
+			transform: translateY(16px) scale(0.97);
+		}
+	}
+	.modal::backdrop {
+		background: rgb(20 14 12 / 0.5);
+		backdrop-filter: blur(3px);
+		opacity: 0;
+		transition:
+			opacity 260ms var(--ease-cozy),
+			overlay 260ms allow-discrete,
+			display 260ms allow-discrete;
+	}
+	.modal[open]::backdrop {
+		opacity: 1;
+		@starting-style {
+			opacity: 0;
+		}
+	}
+	@media (max-width: 639px) {
+		.modal {
+			width: 100%;
+			max-width: none;
+			margin: auto 0 0;
+			border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+			padding-bottom: env(safe-area-inset-bottom);
+			transform: translateY(100%);
+			transition:
+				opacity 160ms var(--ease-cozy),
+				transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+				overlay 380ms allow-discrete,
+				display 380ms allow-discrete;
+		}
+		.modal[open] {
+			@starting-style {
+				opacity: 1;
+				transform: translateY(100%);
+			}
+		}
+	}
+
+	/* Dropdown menus (ui/Dropdown.svelte, Popover API): scale in from the button, fade out on close. */
+	.menu-pop {
+		opacity: 0;
+		transform: translateY(-6px) scale(0.96);
+		transform-origin: top center;
+		transition:
+			opacity 140ms var(--ease-cozy),
+			transform 240ms var(--ease-spring),
+			overlay 200ms allow-discrete,
+			display 200ms allow-discrete;
+	}
+	.menu-pop:popover-open {
+		opacity: 1;
+		transform: none;
+		@starting-style {
+			opacity: 0;
+			transform: translateY(-6px) scale(0.96);
+		}
+	}
+
+	/* Staggered entrance. Give each item style="--i: n" (0, 1, 2...) and they rise one after the other. */
+	.rise {
+		animation: rise 560ms var(--ease-cozy) both;
+		animation-delay: calc(var(--i, 0) * 60ms);
+	}
+	/* Lifted card shadow for interactive cards */
+	.lift {
+		transition:
+			transform 260ms var(--ease-spring),
+			box-shadow 260ms var(--ease-cozy),
+			border-color 160ms var(--ease-cozy);
+	}
+	.lift:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-lift);
+	}
+	.lift:active {
+		transform: translateY(0) scale(0.985);
+		transition-duration: 80ms;
+	}
+	/* The arc of a progress ring draws itself from empty (ui/Progressring.svelte sets --circ) */
+	.ring-arc {
+		transition: stroke-dashoffset 1000ms var(--ease-cozy);
+		@starting-style {
+			stroke-dashoffset: var(--circ);
+		}
+	}
+	/* Bars that grow from nothing when they appear (progress bars, streak week) */
+	.grow-x {
+		width: var(--w, 0%);
+		transition: width 900ms var(--ease-cozy);
+		@starting-style {
+			width: 0%;
+		}
+	}
+	.grow-y {
+		height: var(--h, 0%);
+		transition: height 800ms var(--ease-cozy);
+		transition-delay: calc(var(--i, 0) * 50ms);
+		@starting-style {
+			height: 0%;
+		}
+	}
+	.toast {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 1.1rem 0.6rem 0.7rem;
+		border: 2.5px solid var(--color-ink);
+		border-radius: 999px;
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-family: var(--font-heading);
+		font-weight: 500;
+		box-shadow: 0 4px 0 0 var(--color-cream-edge);
+		animation: toast-in 420ms var(--ease-spring);
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Keyframes
+   --------------------------------------------------------------------------- */
+@keyframes wiggle {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-6px);
+	}
+	40% {
+		transform: translateX(5px);
+	}
+	60% {
+		transform: translateX(-3px);
+	}
+	80% {
+		transform: translateX(2px);
+	}
+}
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(16px) scale(0.985);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+/* A chosen option settles in with a small bounce */
+@keyframes select-pop {
+	0% {
+		transform: scale(0.965);
+	}
+	55% {
+		transform: scale(1.025);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+/* A correct answer: a ring of sage light that fades out */
+@keyframes correct-glow {
+	0% {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-sage) 70%, transparent);
+	}
+	100% {
+		box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-sage) 0%, transparent);
+	}
+}
+@keyframes toast-in {
+	from {
+		opacity: 0;
+		transform: translateY(24px) scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes icon-swap {
+	from {
+		opacity: 0;
+		transform: rotate(-70deg) scale(0.4);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes badge-pop {
+	0% {
+		transform: scale(0);
+	}
+	70% {
+		transform: scale(1.25);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+@keyframes bell-ring {
+	0%,
+	100% {
+		transform: rotate(0);
+	}
+	15% {
+		transform: rotate(14deg);
+	}
+	30% {
+		transform: rotate(-12deg);
+	}
+	45% {
+		transform: rotate(8deg);
+	}
+	60% {
+		transform: rotate(-5deg);
+	}
+	75% {
+		transform: rotate(2deg);
+	}
+}
+@keyframes flicker {
+	0%,
+	100% {
+		transform: scale(1) rotate(0);
+	}
+	30% {
+		transform: scale(1.1, 1.06) rotate(-3deg);
+	}
+	60% {
+		transform: scale(0.96, 1.04) rotate(2deg);
+	}
+}
+@keyframes bob {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+}
+@keyframes page-in {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes page-out {
+	to {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+@keyframes check-pop {
+	0% {
+		transform: translateY(-50%) scale(0.8);
+	}
+	60% {
+		transform: translateY(-50%) scale(1.1);
+	}
+	100% {
+		transform: translateY(-50%) scale(1);
+	}
+}
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes twinkle {
+	0%,
+	100% {
+		opacity: 0.5;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+@keyframes blink {
+	0%,
+	94%,
+	100% {
+		transform: scaleY(1);
+	}
+	97% {
+		transform: scaleY(0.1);
+	}
+}
+
+/* Skeleton loading placeholder (ui/Skeleton.svelte): soft shimmer on surface tokens */
+@layer components {
+	.skeleton {
+		border-radius: var(--radius-tile);
+		background-color: var(--color-surface-2);
+		background-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			color-mix(in srgb, var(--color-border) 60%, transparent) 50%,
+			transparent 100%
+		);
+		background-size: 200% 100%;
+		background-repeat: no-repeat;
+		animation: skeleton-shimmer 1.6s ease-in-out infinite;
+	}
+}
+@keyframes skeleton-shimmer {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -100% 0;
+	}
+}
+
+/* Page changes (onNavigate in +layout.svelte): the content area fades up while the sidebar and tab bar stay put. */
+main {
+	view-transition-name: page;
+}
+.vt-chrome {
+	view-transition-name: chrome;
+}
+::view-transition-group(chrome) {
+	animation-duration: 0s;
+}
+::view-transition-old(page) {
+	animation: page-out 140ms ease-in both;
+}
+::view-transition-new(page) {
+	animation: page-in 420ms var(--ease-cozy) both;
+}
+
+/* Switching theme: colors glide for a moment (class set by theme.svelte.ts, then removed) */
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+	transition:
+		background-color 380ms ease,
+		border-color 380ms ease,
+		color 380ms ease,
+		fill 380ms ease,
+		stroke 380ms ease,
+		box-shadow 380ms ease !important;
+}
+
+/* prefers-reduced-motion: no wiggle, sparkle, blink or sliding; colors and static icons stay */
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none !important;
+	}
+	.skeleton {
+		animation: none;
+		background-image: none;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+}

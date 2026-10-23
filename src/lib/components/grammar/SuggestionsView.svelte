@@ -22,6 +22,9 @@
 	let tab = $state<'review' | 'mine'>('mine');
 	let busyId = $state<string | null>(null);
 	let formOpen = $state(false);
+	let editingId = $state<string | null>(null);
+	let editForm = $state({ term: '', definition: '', example: '', exampleTranslation: '', source: '' });
+	let editError = $state('');
 
 	const STATUS_LABEL: Record<SuggestionStatus, string> = { new: 'Wacht op beoordeling', accepted: 'Goedgekeurd', rejected: 'Afgewezen' };
 	const dateFormat = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short' });
@@ -67,6 +70,28 @@
 		}
 	}
 
+	function startEdit(item: Suggestion) {
+		editingId = item.id;
+		editForm = { term: item.term, definition: item.definition, example: item.example, exampleTranslation: item.exampleTranslation, source: item.source };
+		editError = '';
+	}
+
+	async function saveEdit(item: Suggestion) {
+		if (!auth.client || busyId) return;
+		busyId = item.id;
+		try {
+			await createSuggestionsApi(auth.client).edit(item.id, item.subject, editForm);
+			const apply = (s: Suggestion) => (s.id === item.id ? { ...s, ...editForm } : s);
+			pending = pending.map(apply);
+			mine = mine.map(apply);
+			editingId = null;
+		} catch (error) {
+			editError = error instanceof StorageError ? error.message : 'Aanpassen is mislukt.';
+		} finally {
+			busyId = null;
+		}
+	}
+
 	const tabOptions = $derived([
 		{ id: 'review' as const, name: `Te beoordelen (${pending.length})` },
 		{ id: 'mine' as const, name: `Mijn voorstellen (${mine.length})` }
@@ -106,14 +131,45 @@
 					<h2 class="min-w-0 font-heading text-lg font-semibold">{item.term} <span class="font-body text-sm font-normal text-text-muted">· {item.subject}</span></h2>
 					<span class="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">{STATUS_LABEL[item.status]} · {dateFormat.format(item.createdAt)}</span>
 				</div>
+				{#if editingId === item.id}
+					<label>
+						<span class="mb-1 block text-sm font-semibold text-text-muted">Naam</span>
+						<input class="input" bind:value={editForm.term} />
+					</label>
+					<label>
+						<span class="mb-1 block text-sm font-semibold text-text-muted">Uitleg</span>
+						<textarea class="input min-h-20" bind:value={editForm.definition}></textarea>
+					</label>
+					<div class="grid gap-3 sm:grid-cols-2">
+						<label>
+							<span class="mb-1 block text-sm font-semibold text-text-muted">Voorbeeld</span>
+							<input class="input" bind:value={editForm.example} spellcheck="false" />
+						</label>
+						<label>
+							<span class="mb-1 block text-sm font-semibold text-text-muted">Vertaling</span>
+							<input class="input" bind:value={editForm.exampleTranslation} />
+						</label>
+					</div>
+					<label>
+						<span class="mb-1 block text-sm font-semibold text-text-muted">Bron</span>
+						<input class="input" bind:value={editForm.source} />
+					</label>
+					<p class="min-h-5 text-sm font-semibold text-rose-edge" role="alert">{editError}</p>
+					<div class="flex gap-2">
+						<Button size="sm" disabled={busyId !== null} onclick={() => saveEdit(item)}>Opslaan</Button>
+						<Button size="sm" variant="ghost" onclick={() => (editingId = null)}>Annuleren</Button>
+					</div>
+				{:else}
 				<p>{item.definition}</p>
 				{#if item.example}<p class="rounded-tile bg-surface-2 px-3 py-2 text-sm">{item.example}{item.exampleTranslation ? ` — ${item.exampleTranslation}` : ''}</p>{/if}
 				{#if item.source}<p class="text-sm text-text-muted">Bron: {item.source}</p>{/if}
 				{#if canReview}
 					<div class="mt-1 flex flex-wrap gap-2">
 						<Button size="sm" disabled={busyId !== null} onclick={() => review(item, 'accepted')}><Icon name="check" size={16} /> Goedkeuren</Button>
-						<Button size="sm" variant="secondary" disabled={busyId !== null} onclick={() => review(item, 'rejected')}><Icon name="x" size={16} /> Afwijzen</Button>
+						<Button size="sm" variant="secondary" disabled={busyId !== null} onclick={() => startEdit(item)}><Icon name="pencil" size={16} /> Bewerken</Button>
+						<Button size="sm" variant="ghost" disabled={busyId !== null} onclick={() => review(item, 'rejected')}><Icon name="x" size={16} /> Afwijzen</Button>
 					</div>
+				{/if}
 				{/if}
 			</Card>
 		{/snippet}

@@ -75,6 +75,21 @@ export function createSuggestionsApi(client: SupabaseClient) {
 			return parseList(SuggestionRowSchema, data).map(toSuggestion);
 		},
 
+		/** Owner only: fix a suggestion (typos, a clearer explanation) before accepting it. */
+		async edit(id: string, subject: SuggestionSubject, input: Omit<SuggestionInput, 'subject'>): Promise<void> {
+			const problem = validateSuggestion({ ...input, subject });
+			if (problem) throw new StorageError(problem);
+			const { error } = await client.rpc('update_grammar_suggestion', {
+				p_id: id,
+				p_term: input.term,
+				p_definition: input.definition,
+				p_example: input.example,
+				p_example_translation: input.exampleTranslation,
+				p_source: input.source
+			});
+			if (error) fail(error, 'Aanpassen mislukt. Is de SQL (006) al gedraaid? Dit mag alleen de beheerder.');
+		},
+
 		/** Owner only. */
 		async review(id: string, status: SuggestionStatus): Promise<void> {
 			const { error } = await client.rpc('review_grammar_suggestion', { p_id: id, p_status: status });

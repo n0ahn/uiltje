@@ -99,11 +99,17 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Schema v4: list kind `concept` (explanation or example -> term) and optional row `ref`; migration 3 -> 4; practice uses the existing word engine (multiple choice AND typed, no new runner)
 - [x] "Stijlfiguren" and "Grammatica" templates: `CataloguePicker` (tick items from the syllabus, or add your own with explanation), rows built from the syllabus text (no AI)
 - [x] Suggestions: "Stel een regel voor" (`SuggestionModal`), `/suggesties` (own suggestions; owner accepts/rejects), accepted ones appear for everyone in the picker. SQL: `ai/sql/004_grammar_suggestions.sql`
-- [ ] Run 004 in Supabase and make yourself owner (`insert into public.app_admins ...`), then try it: picker, suggestion, accept, see it in the picker with a second account
-- [ ] Phone check of the picker modal (long list, search, footer) and the concept row editor
-- [ ] Generated example sentences per catalogue item (Gemini, schema-constrained, second check pass) + approval screen for the owner, stored as text, never generated while the user waits
-- [ ] Owner can edit a suggestion before accepting (now only accept/reject)
-- [ ] Vormleer items as rijtjes templates (aorist/perfect/futurum lists, stamtijden) instead of definition questions
+- [x] Fix: practice wording for begrippen ("Welke term hoort hierbij?" instead of "Vertaal", "begrippen" instead of "woorden") and the answer that ran out of its row on the "Nieuwe woorden" intro
+- [x] Question bank: AI writes sentences ("welke stijlfiguur zie je?") and descriptions ("welke term past bij deze uitleg?") around syllabus items, a second AI pass checks them, the owner approves (`/vragen`, `ai/sql/006_grammar_questions.sql`, `/api/ai/questions`); answers are always the catalogue term
+- [x] Approved AI questions are offered in the picker ("Ook extra vragen van de AI") and included in library sets
+- [x] "Uitleggen" practice mode for begrippen: explain a term in your own words, see the syllabus text, rate yourself, AI checks all answers at the end (`/api/ai/explain`, one request per run); does not count for progress
+- [x] Owner can edit a suggestion before accepting it (SQL 006 `update_grammar_suggestion`)
+- [x] Phase 10 (first version): `/bibliotheek` with ready-made sets built from the catalogues (Stijlfiguren & retorica, Grammatica for Latijn and Grieks, Stamtijden Latijn), added to Mijn sets with one click
+- [ ] Run SQL 004 and 006 in Supabase, make yourself owner (`insert into public.app_admins ...`), then try: generate questions on /vragen (start with 3 items), approve, add a library set, practise it, "Uitleggen", send and accept a suggestion
+- [ ] Phone check: picker modal, /vragen (two columns), concept row editor, Uitleggen
+- [ ] Greek stamtijden / form lists (aorist, perfect, future): the syllabus lists forms without lemmas, so they need a lemma per form added by hand and checked
+- [ ] Explanations shown after answering in the practice screens (the `explanation` of an approved question is stored but not shown yet)
+- [ ] Library: more sets (per author, per chapter) and a way for the owner to publish own sets
 
 ## Phase 10 — Default lists
 - [ ] Curated library, add-to-my-sets

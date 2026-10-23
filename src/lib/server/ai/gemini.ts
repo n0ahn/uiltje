@@ -27,6 +27,8 @@ export type GenerateOptions<T> = {
 	fetchImpl?: typeof fetch;
 	sleep?: (ms: number) => Promise<void>;
 	now?: () => number;
+	/** 0.1 by default (reading and structuring); higher for writing new sentences, 0 for strict checking. */
+	temperature?: number;
 	/** Attempts per model for temporary errors. */
 	attemptsPerModel?: number;
 	/** Per request timeout. */
@@ -56,7 +58,7 @@ export async function generateJson<T>(options: GenerateOptions<T>): Promise<{ va
 	const body = JSON.stringify({
 		systemInstruction: { parts: [{ text: system }] },
 		contents: [{ role: 'user', parts }],
-		generationConfig: { responseMimeType: 'application/json', responseJsonSchema: schema, temperature: 0.1, maxOutputTokens: 32768 }
+		generationConfig: { responseMimeType: 'application/json', responseJsonSchema: schema, temperature: options.temperature ?? 0.1, maxOutputTokens: 32768 }
 	});
 
 	for (const model of models) {

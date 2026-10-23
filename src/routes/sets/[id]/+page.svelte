@@ -213,7 +213,7 @@
 		</div>
 
 		<div class="flex flex-wrap items-center gap-3">
-			<PracticeMenu href="/sets/{set.id}/practice" disabled={rowTotal === 0} />
+			<PracticeMenu href="/sets/{set.id}/practice" disabled={rowTotal === 0} explain={set.lists.some((l) => l.kind === 'concept' && l.rows.length > 0)} />
 			<Button href="/sets/{set.id}/edit" variant="secondary" size="lg"><Icon name="pencil" size={18} /> Bewerken</Button>
 			<Dropdown label="Meer acties" variant="ghost" size="lg" iconOnly align="right">
 				{#snippet trigger()}<Icon name="more" size={22} />{/snippet}
