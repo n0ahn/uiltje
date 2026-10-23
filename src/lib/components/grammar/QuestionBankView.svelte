@@ -18,6 +18,8 @@
 	import Owl from '../ui/Owl.svelte';
 	import Segmented from '../ui/Segmented.svelte';
 
+	let { embedded = false }: { embedded?: boolean } = $props();
+
 	// Question bank, owner only: let the AI write questions around items of the syllabus, look at what the check pass
 	// said, and approve what is good. Approved questions are offered to everyone when they pick items.
 	const CATALOGUE_CHOICES = CATALOGUES.map((c) => ({ id: c.id, name: c.subject }));
@@ -184,21 +186,21 @@
 	const okCount = $derived(activeQuestions.filter((q) => q.checkOk === true).length);
 </script>
 
-<svelte:head><title>Vragenbank · Uiltje</title></svelte:head>
+<svelte:head><title>{embedded ? 'Review' : 'Vragenbank'} · Uiltje</title></svelte:head>
 
 <div class="mx-auto flex max-w-6xl flex-col gap-5">
-	<div class="flex flex-wrap items-center gap-4">
+	{#if !embedded}<div class="flex flex-wrap items-center gap-4">
 		<Owl pose="thinking" size={64} />
 		<div class="min-w-0 flex-1">
 			<h1 class="font-heading text-3xl font-semibold">Vragenbank</h1>
 			<p class="text-text-muted">De AI bedenkt vragen rond de syllabus, jij keurt ze goed. Het antwoord is altijd de term uit de syllabus.</p>
 		</div>
-	</div>
+	</div>{/if}
 
 	{#if !auth.user}
 		<Card class="flex flex-col items-start gap-3">
 			<p class="text-text-muted">Log in als beheerder om de vragenbank te gebruiken.</p>
-			<Button href="/login?next=/vragen"><Icon name="log-in" size={18} /> Inloggen</Button>
+			<Button href="/login?next=/review"><Icon name="log-in" size={18} /> Inloggen</Button>
 		</Card>
 	{:else if !admin.isAdmin}
 		<Card class="text-text-muted">Alleen de beheerder kan de vragenbank gebruiken. Ben jij dat? Controleer of je in <code>app_admins</code> staat (zie SQL 004).</Card>

@@ -248,3 +248,10 @@ Read this before starting work. Add errors, gotchas and decisions here so they a
 ## Merge of the 2026-10-22 15:00 update (2026-10-23)
 - Merged the 1500 version (question bank, Uitleggen, library, suggestion editing, begrippen wording) into the current code. Kept the current code where it was newer: set page (selection practice, grouping), `PracticeMenu` (`extra`, `onbeforestart`, plus new `explain`), `VocabRunner` (`sets`, `troubleKeys`), nav (Uitdagingen kept, Bibliotheek added), Gemini error copy (no Gemini/limit wording).
 - SQL renumbered: the update's `005_grammar_questions.sql` is now **`006_grammar_questions.sql`** because `005_challenges.sql` already exists. Run 006 after 004.
+
+## Uitleggen without self-rating, disputes, /review (2026-10-24)
+- "Uitleggen": the learner no longer grades themselves. After typing, the syllabus text is shown and they press "Volgende" (Enter); at the end the AI checks everything (login required, the start screen says so; a failed check can be retried, nothing counts as "goed" without the AI). `ExplainSession.rate` became `next`, `ExplainOutcome.self` is gone.
+- AI strictness: the start screen has the usual "Strengheid" choice (default from `/settings`). Per term `strict` = the set's `strictAccents` ('set'), or forced by the session choice. The server prompt has a strict and a relaxed mode (`server/ai/explain.ts`).
+- Disputes: "Ik ben het er niet mee eens" on every non-"goed" result sends the answer, AI verdict and a note through `submit_explain_dispute` (`ai/sql/007_explain_disputes.sql`, 30 per user per day, table readable by the owner only). Client: `grammar/disputes.ts`.
+- `/review` (owner): tabs Vragenbank (the old `/vragen`, `QuestionBankView embedded`), Voorstellen (moved out of `/suggesties`, `SuggestionsReview`) and Bezwaren (`DisputesReview`). `/vragen` redirects to `/review?tab=vragen`; `/suggesties` only shows your own suggestions (plus a link to review for the owner). Profile menu: "Review" replaces "Vragenbank". Run SQL 007.
+- Not seen in a browser or run against Supabase/Gemini.

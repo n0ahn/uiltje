@@ -49,7 +49,7 @@
 {#snippet items()}
 	{#if auth.user}<MenuItem icon="user" href="/profile">Profiel</MenuItem>{/if}
 	{#if auth.user}<MenuItem icon="sparkles" href="/suggesties">Voorstellen</MenuItem>{/if}
-	{#if admin.isAdmin}<MenuItem icon="list" href="/vragen">Vragenbank</MenuItem>{/if}
+	{#if admin.isAdmin}<MenuItem icon="list" href="/review">Review</MenuItem>{/if}
 	{#if showSettings}<MenuItem icon="sliders" href="/settings">Instellingen</MenuItem>{/if}
 	{#if auth.user}
 		<MenuItem icon="log-out" danger onclick={() => auth.signOut()}>Uitloggen</MenuItem>

@@ -152,3 +152,7 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] `/sets/[id]`: group by "Op beheersing" (Lastig, Bezig, Nog niet geoefend, Onder de knie) with "Oefen deze" per group
 - [ ] Try in the real app: auto mode with a few prompts (stijlfiguren, declension, vocab), import menu on phone, selection practice in learn/test/flashcards, grouping with real progress
 - [ ] Remember the chosen grouping and the pick across visits (now: per visit, selection per tab)
+- [x] Uitleggen: no self-rating, AI check with the set's strictness, "Ik ben het er niet mee eens" (SQL 007)
+- [x] `/review` for the owner: Vragenbank + Voorstellen + Bezwaren in one page
+- [ ] Run `ai/sql/007_explain_disputes.sql`, then try: Uitleggen as strict and relaxed, send a dispute, resolve it on /review
+- [ ] Tell a learner when their dispute was handled (now the owner only marks it accepted/rejected)

@@ -4,7 +4,10 @@
 	import Card from '../ui/Card.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import Segmented from '../ui/Segmented.svelte';
-	import type { ExplainConfig } from './config';
+	import { page } from '$app/state';
+	import { auth } from '../../state/auth.svelte';
+	import { settings } from '../../state/settings.svelte';
+	import { STRICTNESS_OPTIONS, type ExplainConfig, type PracticeConfig } from './config';
 
 	// Start screen of "Uitleggen": which lists of begrippen, how many terms.
 	type Props = { sets: StudySet[]; title: string; backHref: string; onstart: (config: ExplainConfig) => void };
@@ -14,6 +17,7 @@
 	// svelte-ignore state_referenced_locally
 	let selection = $state<Record<string, string[]>>(Object.fromEntries(sets.map((set) => [set.id, conceptLists(set).map((l) => l.id)])));
 	let count = $state<number | null>(10);
+	let strictness = $state<PracticeConfig['strictness']>(settings.value.practice.strictness);
 
 	const COUNT_OPTIONS = [
 		{ id: 5, name: '5 begrippen' },
@@ -47,9 +51,12 @@
 	</div>
 
 	<Card class="flex flex-col gap-5 sm:p-8">
-		<p class="text-text-muted">Je krijgt een stijlfiguur of regel en legt in je eigen woorden uit wat het is. Daarna zie je de uitleg uit de syllabus. Aan het eind kijkt de AI je antwoorden na (daarvoor moet je ingelogd zijn). Dit telt niet mee voor je voortgang.</p>
+		<p class="text-text-muted">Je krijgt een stijlfiguur of regel en legt in je eigen woorden uit wat het is. Daarna zie je de uitleg uit de syllabus. Aan het eind kijkt de AI je antwoorden na; je beoordeelt jezelf dus niet. Ben je het er niet mee eens, dan kun je bezwaar indienen. Dit telt niet mee voor je voortgang.</p>
 
-		{#if !hasLists}
+		{#if !auth.user}
+			<p class="rounded-tile bg-surface-2 p-3 font-semibold" role="status">Log in om Uitleggen te gebruiken: de AI moet je antwoorden kunnen nakijken.</p>
+			<div><Button href="/login?next={encodeURIComponent(page.url.pathname + page.url.search)}" size="lg"><Icon name="log-in" size={20} /> Inloggen</Button></div>
+		{:else if !hasLists}
 			<p class="rounded-tile bg-rose-soft p-3 font-semibold" role="alert">Deze set heeft geen lijst met begrippen. Maak er een met het sjabloon Stijlfiguren of Grammatica.</p>
 		{:else}
 			<fieldset class="flex flex-col gap-2">
@@ -71,9 +78,10 @@
 			</fieldset>
 
 			<Segmented legend="Hoeveel?" options={COUNT_OPTIONS} bind:value={countChoice} />
+			<Segmented legend="Hoe streng kijkt de AI na?" stack options={STRICTNESS_OPTIONS} bind:value={strictness} />
 
 			<div>
-				<Button size="lg" class="min-w-44" disabled={selected === 0} onclick={() => onstart({ selection: { ...selection }, count })}><Icon name="play" size={20} /> Start</Button>
+				<Button size="lg" class="min-w-44" disabled={selected === 0} onclick={() => onstart({ selection: { ...selection }, count, strictness })}><Icon name="play" size={20} /> Start</Button>
 			</div>
 		{/if}
 	</Card>

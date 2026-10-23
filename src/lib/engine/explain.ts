@@ -1,5 +1,5 @@
 // "Uitleggen" (phase 9): the learner explains a term in their own words, sees the official explanation from the syllabus
-// and rates themselves; at the end the AI checks all answers in one request. Pure TS: no Svelte, DOM or network.
+// and goes on; the learner does not grade themselves: at the end the AI checks all answers in one request. Pure TS: no Svelte, DOM or network.
 import { shuffle, type Rng } from './random';
 import type { PracticeRow } from './types';
 
@@ -12,13 +12,15 @@ export type ExplainItem = {
 	/** The official explanation (from the syllabus catalogue, or what the learner typed for an own item). */
 	reference: string;
 	ref?: string;
+	/** Strict AI check (accents and spelling of terms and examples count): from the set's setting, or the session choice. */
+	strict: boolean;
 	/** Keyboard of the set the row came from (the explanation itself is Dutch, but terms can be Greek). */
 	greek: boolean;
 };
 
 export type AiVerdict = { verdict: Rating; feedback: string };
 
-export type ExplainOutcome = { item: ExplainItem; answer: string; self: Rating | null; ai: AiVerdict | null };
+export type ExplainOutcome = { item: ExplainItem; answer: string; ai: AiVerdict | null };
 
 export type BuildOptions = {
 	/** How many terms to ask, null = all. */
@@ -44,7 +46,7 @@ export function buildExplainItems(rows: readonly PracticeRow[], options: BuildOp
 		const own = group.find((r) => !r.prompt.includes(' — ')) ?? first;
 		const reference = (first.ref ? options.referenceOf(first.ref) : undefined) ?? own.prompt;
 		if (reference.trim() === '') continue;
-		items.push({ key, term: first.answers[0]!, reference, ...(first.ref ? { ref: first.ref } : {}), greek: first.settings.keyboard === 'greek' });
+		items.push({ key, term: first.answers[0]!, reference, ...(first.ref ? { ref: first.ref } : {}), strict: first.settings.strictAccents, greek: first.settings.keyboard === 'greek' });
 	}
 	const mixed = shuffle(items, options.rng ?? Math.random);
 	return options.count === null ? mixed : mixed.slice(0, Math.max(0, options.count));
@@ -53,10 +55,9 @@ export function buildExplainItems(rows: readonly PracticeRow[], options: BuildOp
 export class ExplainSession {
 	readonly items: readonly ExplainItem[];
 	#answers: string[] = [];
-	#self: (Rating | null)[] = [];
 	#ai: (AiVerdict | null)[];
 	#index = 0;
-	/** True between "controleer" and the self rating: the official explanation is on screen. */
+	/** True between "laat zien" and "volgende": the official explanation is on screen. */
 	#revealed = false;
 
 	constructor(items: readonly ExplainItem[]) {
@@ -87,10 +88,9 @@ export class ExplainSession {
 		this.#revealed = true;
 	}
 
-	/** The learner's own verdict, then on to the next term. */
-	rate(rating: Rating): void {
+	/** Done reading the official explanation: on to the next term. */
+	next(): void {
 		if (this.finished || !this.#revealed) return;
-		this.#self[this.#index] = rating;
 		this.#revealed = false;
 		this.#index++;
 	}
@@ -108,15 +108,15 @@ export class ExplainSession {
 	}
 
 	outcomes(): ExplainOutcome[] {
-		return this.items.map((item, index) => ({ item, answer: this.#answers[index] ?? '', self: this.#self[index] ?? null, ai: this.#ai[index] ?? null }));
+		return this.items.map((item, index) => ({ item, answer: this.#answers[index] ?? '', ai: this.#ai[index] ?? null }));
 	}
 
-	/** The AI verdict counts when there is one, else the learner's own rating. */
+	/** Only the AI verdict counts; a term without a verdict (check failed) counts as "niet". */
 	summary(): { goed: number; bijna: number; niet: number; total: number; checkedByAi: boolean } {
 		const counts = { goed: 0, bijna: 0, niet: 0 };
 		let checkedByAi = false;
 		for (const outcome of this.outcomes()) {
-			const verdict = outcome.ai?.verdict ?? outcome.self ?? 'niet';
+			const verdict = outcome.ai?.verdict ?? 'niet';
 			if (outcome.ai) checkedByAi = true;
 			counts[verdict]++;
 		}
