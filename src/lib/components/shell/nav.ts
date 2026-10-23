@@ -8,18 +8,19 @@ export type NavItem = {
 	prefixes: string[];
 	/** Shown in the mobile bottom bar (max 5). */
 	mobile: boolean;
+	/** Heading in the sidebar: items with the same group sit together. */
+	group: string;
 };
 
 export const NAV: NavItem[] = [
-	{ href: '/', label: 'Home', icon: 'home', prefixes: [], mobile: true },
-	{ href: '/vakken', label: 'Vakken', icon: 'book', prefixes: ['/vak/'], mobile: true },
-	{ href: '/sets', label: 'Mijn sets', icon: 'layers', prefixes: ['/sets/'], mobile: false },
-	{ href: '/friends', label: 'Vrienden', icon: 'users', prefixes: [], mobile: true },
-	{ href: '/bibliotheek', label: 'Bibliotheek', icon: 'cards', prefixes: [], mobile: false },
-	{ href: '/uitdagingen', label: 'Uitdagingen', icon: 'flame', prefixes: ['/uitdaging/'], mobile: false },
-	{ href: '/leaderboard', label: 'Ranglijst', icon: 'trophy', prefixes: [], mobile: false },
-	{ href: '/stats', label: 'Statistieken', icon: 'chart', prefixes: [], mobile: true },
-	{ href: '/settings', label: 'Instellingen', icon: 'sliders', prefixes: [], mobile: true }
+	{ href: '/', label: 'Home', icon: 'home', prefixes: [], mobile: true, group: 'Leren' },
+	{ href: '/vakken', label: 'Vakken', icon: 'book', prefixes: ['/vak/'], mobile: true, group: 'Leren' },
+	{ href: '/sets', label: 'Mijn sets', icon: 'layers', prefixes: ['/sets/', '/bibliotheek'], mobile: false, group: 'Leren' },
+	{ href: '/friends', label: 'Vrienden', icon: 'users', prefixes: ['/u/', '/i/'], mobile: true, group: 'Samen' },
+	{ href: '/leaderboard', label: 'Ranglijst', icon: 'trophy', prefixes: [], mobile: false, group: 'Samen' },
+	{ href: '/uitdagingen', label: 'Uitdagingen', icon: 'flame', prefixes: ['/uitdaging/'], mobile: false, group: 'Samen' },
+	{ href: '/stats', label: 'Statistieken', icon: 'chart', prefixes: [], mobile: true, group: 'Jij' },
+	{ href: '/settings', label: 'Instellingen', icon: 'sliders', prefixes: [], mobile: true, group: 'Jij' }
 ];
 
 export function isActive(item: NavItem, pathname: string): boolean {

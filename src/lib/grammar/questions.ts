@@ -53,7 +53,7 @@ export function createQuestionsApi(client: SupabaseClient) {
 					}))
 				)
 				.select(COLUMNS);
-			if (error) fail(error, 'De vragen konden niet bewaard worden. Is de SQL (006) al gedraaid?');
+			if (error) fail(error, 'De vragen konden niet bewaard worden.');
 			return parseList(BankRowSchema, data).map(toBankQuestion);
 		},
 

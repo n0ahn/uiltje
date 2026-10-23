@@ -87,7 +87,7 @@ export function createSuggestionsApi(client: SupabaseClient) {
 				p_example_translation: input.exampleTranslation,
 				p_source: input.source
 			});
-			if (error) fail(error, 'Aanpassen mislukt. Is de SQL (006) al gedraaid? Dit mag alleen de beheerder.');
+			if (error) fail(error, 'Aanpassen mislukt. Dit mag alleen de beheerder.');
 		},
 
 		/** Owner only. */

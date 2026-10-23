@@ -10,7 +10,9 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
 	'/': ['dashboard', 'start', 'overzicht'],
 	'/vakken': ['talen', 'latijn', 'grieks'],
 	'/sets': ['mijn sets', 'rijtjes', 'lijsten', 'woorden'],
-	'/friends': ['ranglijst', 'leaderboard', 'vriend'],
+	'/friends': ['vriend', 'vrienden', 'sociaal'],
+	'/leaderboard': ['ranglijst', 'top', 'vrienden'],
+	'/uitdagingen': ['uitdagen', 'wedstrijd', 'vrienden'],
 	'/stats': ['voortgang', 'streak', 'grafiek'],
 	'/settings': ['thema', 'geluid', 'profiel', 'account', 'nakijken']
 };
@@ -69,6 +71,11 @@ export function buildPaletteItems(overview: DashboardData | null): PaletteItem[]
 			href: page.href
 		});
 	}
+
+	// Sub-pages that are not in the sidebar.
+	items.push(
+		{ id: 'pagina:/bibliotheek', group: 'pages', title: 'Kant en klaar', keywords: ['bibliotheek', 'kant-en-klaar', 'stijlfiguren', 'grammatica', 'stamtijden'], icon: 'cards', href: '/bibliotheek' }
+	);
 
 	items.push(
 		{ id: 'actie:nieuwe-set', group: 'actions', title: 'Nieuwe set', keywords: ['maak', 'aanmaken', 'toevoegen'], icon: 'plus', accent: 'primary', href: '/sets/new' },

@@ -7,7 +7,6 @@
 	import Card from '#lib/components/ui/Card.svelte';
 	import Chip from '#lib/components/ui/Chip.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-	import Owl from '#lib/components/ui/Owl.svelte';
 	import { formatGrade } from '#lib/engine/grading.js';
 	import { getSocial } from '#lib/social/index.js';
 	import type { Challenge, ChallengeScore } from '#lib/social/types.js';
@@ -69,10 +68,9 @@
 
 <svelte:head><title>Uitdagingen · Uiltje</title></svelte:head>
 
-<div class="mx-auto flex max-w-3xl flex-col gap-6">
-	<div class="flex items-center gap-4">
-		<Owl pose="happy" size={64} />
-		<div>
+<div class="flex flex-col gap-5">
+	<div class="flex flex-wrap items-center gap-3">
+		<div class="min-w-0 flex-1">
 			<h1 class="font-heading text-3xl font-semibold">Uitdagingen</h1>
 			<p class="text-text-muted">Daag een vriend uit op een set (via het ⋮-menu van de set) en kijk wie het hoogste cijfer haalt.</p>
 		</div>

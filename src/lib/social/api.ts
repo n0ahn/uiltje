@@ -215,11 +215,11 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 		},
 
 		async sendChallenge(setId, friendId) {
-			await rpc('send_challenge', { p_set_id: setId, p_friend_id: friendId }, 'Uitdagen is niet gelukt. Staat de set in je account en heeft hij rijen? Heb je 005_challenges.sql al uitgevoerd?');
+			await rpc('send_challenge', { p_set_id: setId, p_friend_id: friendId }, 'Uitdagen is niet gelukt. Staat de set in je account en heeft hij rijen?');
 		},
 
 		async listChallenges() {
-			return parseRows(challengeRow, await rpc('list_challenges', undefined, 'Uitdagingen laden lukt niet. Heb je 005_challenges.sql al uitgevoerd?')).map((r) => toChallenge(url, r));
+			return parseRows(challengeRow, await rpc('list_challenges', undefined, 'Uitdagingen laden lukt niet.')).map((r) => toChallenge(url, r));
 		},
 
 		async getChallengeSet(challengeId) {
@@ -237,7 +237,7 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 		async getProfile(username) {
 			const name = username.trim().toLowerCase();
 			if (!USERNAME.test(name)) return null;
-			const data = await rpc('get_profile', { p_username: name }, 'Profiel laden lukt niet. Heb je 003_profiles.sql al uitgevoerd?');
+			const data = await rpc('get_profile', { p_username: name }, 'Profiel laden lukt niet.');
 			if (data === null || data === undefined) return null;
 			const parsed = profileViewRow.safeParse(data);
 			if (!parsed.success) {
@@ -255,7 +255,7 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 
 		async setVisibility(setId, isPublic) {
 			const { error } = await client.from('sets').update({ is_public: isPublic }).eq('owner_id', me()).eq('id', setId);
-			if (error) fail(error, 'Zichtbaarheid aanpassen is niet gelukt. Heb je 003_profiles.sql al uitgevoerd?');
+			if (error) fail(error, 'Zichtbaarheid aanpassen is niet gelukt.');
 		},
 
 		async getPublicSet(setId) {
@@ -267,7 +267,7 @@ export function createSocialApi(client: SupabaseClient, userId: () => string | n
 			const id = me();
 			// Best effort: the photo is the only file we store, and storage objects cannot be removed from SQL.
 			await client.storage.from(AVATAR_BUCKET).remove([`${id}/avatar.webp`]);
-			await rpc('delete_my_account', undefined, 'Account verwijderen is niet gelukt. Heb je 003_profiles.sql al uitgevoerd?');
+			await rpc('delete_my_account', undefined, 'Account verwijderen is niet gelukt.');
 		}
 	};
 }

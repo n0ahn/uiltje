@@ -48,7 +48,7 @@
 			<Button href="/login?next=/review"><Icon name="log-in" size={18} /> Inloggen</Button>
 		</Card>
 	{:else if !admin.isAdmin}
-		<Card class="text-text-muted">Alleen de beheerder kan reviewen. Ben jij dat? Controleer of je in <code>app_admins</code> staat (zie SQL 004).</Card>
+		<Card class="text-text-muted">Deze pagina is alleen voor de beheerder.</Card>
 	{:else}
 		<Segmented legend="Wat wil je reviewen?" options={options} bind:value={tab} />
 		<!-- All three stay mounted so the counts load once and a tab keeps its state. -->

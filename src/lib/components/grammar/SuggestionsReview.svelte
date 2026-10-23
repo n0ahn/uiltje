@@ -80,8 +80,8 @@
 {#if loading}
 	<SuggestionsSkeleton />
 {:else if failed}
-	<Card class="flex flex-col items-start gap-3" role="alert">
-		<p class="font-semibold text-rose-edge">{failed}</p>
+	<Card class="flex flex-col items-start gap-3">
+		<p class="font-semibold text-rose-edge" role="alert">{failed}</p>
 		<Button variant="secondary" onclick={load}>Opnieuw proberen</Button>
 	</Card>
 {:else}

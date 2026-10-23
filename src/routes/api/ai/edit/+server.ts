@@ -51,8 +51,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (wait > 0) return fail(429, 'limit', `Even rustig aan: je kunt het over ${Math.ceil(wait / 60)} min opnieuw proberen.`, { 'retry-after': String(wait) });
 
 	try {
-		const { output, model } = await runAiEdit(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
-		return json({ ok: true, output, model });
+		const { output } = await runAiEdit(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
+		return json({ ok: true, output });
 	} catch (error) {
 		if (error instanceof AiError) return fail(STATUS[error.code], error.code, error.message);
 		console.error('AI edit failed', error);

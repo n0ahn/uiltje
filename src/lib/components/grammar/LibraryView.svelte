@@ -13,7 +13,6 @@
 	import Button from '../ui/Button.svelte';
 	import Card from '../ui/Card.svelte';
 	import Icon from '../ui/Icon.svelte';
-	import Owl from '../ui/Owl.svelte';
 
 	// Ready-made sets from the verified catalogues. "Toevoegen" makes your own copy in Mijn sets; you can change it freely.
 	const storage = getStorage();
@@ -54,13 +53,14 @@
 	}
 </script>
 
-<svelte:head><title>Bibliotheek · Uiltje</title></svelte:head>
+<svelte:head><title>Kant en klaar · Uiltje</title></svelte:head>
 
-<div class="mx-auto flex max-w-4xl flex-col gap-5">
-	<div class="flex items-center gap-4">
-		<Owl pose="happy" size={64} />
-		<div>
-			<h1 class="font-heading text-3xl font-semibold">Bibliotheek</h1>
+<div class="flex flex-col gap-5">
+	<a href="/sets" class="inline-flex w-fit items-center gap-1 text-sm font-semibold text-text-muted hover:text-text"><Icon name="chevron-left" size={18} /> Mijn sets</a>
+
+	<div class="flex flex-wrap items-center gap-3">
+		<div class="min-w-0 flex-1">
+			<h1 class="font-heading text-3xl font-semibold">Kant en klaar</h1>
 			<p class="text-text-muted">Kant-en-klare sets uit het examenprogramma. Voeg ze toe aan je eigen sets en pas ze aan zoals je wilt.</p>
 		</div>
 	</div>

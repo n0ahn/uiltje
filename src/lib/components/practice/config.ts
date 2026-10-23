@@ -89,6 +89,8 @@ export type ExplainConfig = {
 	selection: Record<string, string[]>;
 	/** How many terms to ask, null = all. */
 	count: number | null;
+	/** How strict the AI check is: 'set' follows the set's accent setting of each term. */
+	strictness: PracticeConfig['strictness'];
 };
 
 export const isCardMode = (value: string | null): value is CardMode => !!value && (CARD_MODES as readonly string[]).includes(value);

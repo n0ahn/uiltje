@@ -57,8 +57,8 @@
 {#if loading}
 	<SuggestionsSkeleton />
 {:else if failed}
-	<Card class="flex flex-col items-start gap-3" role="alert">
-		<p class="font-semibold text-rose-edge">{failed}</p>
+	<Card class="flex flex-col items-start gap-3">
+		<p class="font-semibold text-rose-edge" role="alert">{failed}</p>
 		<p class="text-sm text-text-muted">Heb je <code>ai/sql/007_explain_disputes.sql</code> al gedraaid?</p>
 		<Button variant="secondary" onclick={load}>Opnieuw proberen</Button>
 	</Card>

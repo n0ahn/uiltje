@@ -109,7 +109,7 @@
 
 {#if profile.failed && !profile.data}
 	<Card class="flex flex-col items-start gap-3">
-		<p>Je profiel laden lukt niet. Controleer je internetverbinding en probeer het opnieuw. Heb je <code>002_social.sql</code> al uitgevoerd?</p>
+		<p>Je profiel laden lukt niet. Controleer je internetverbinding en probeer het opnieuw.</p>
 		<Button variant="secondary" onclick={() => void profile.load()}>Opnieuw proberen</Button>
 	</Card>
 {:else if !profile.data}

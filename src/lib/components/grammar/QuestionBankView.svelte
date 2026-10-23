@@ -203,7 +203,7 @@
 			<Button href="/login?next=/review"><Icon name="log-in" size={18} /> Inloggen</Button>
 		</Card>
 	{:else if !admin.isAdmin}
-		<Card class="text-text-muted">Alleen de beheerder kan de vragenbank gebruiken. Ben jij dat? Controleer of je in <code>app_admins</code> staat (zie SQL 004).</Card>
+		<Card class="text-text-muted">Deze pagina is alleen voor de beheerder.</Card>
 	{:else}
 		<div class="grid gap-4 md:grid-cols-2">
 			<Segmented legend="Vak" options={CATALOGUE_CHOICES} bind:value={catalogueId} />
@@ -229,8 +229,8 @@
 		{#if loading}
 			<QuestionBankSkeleton />
 		{:else if failed}
-			<Card class="flex flex-col items-start gap-3" role="alert">
-				<p class="font-semibold text-rose-edge">{failed}</p>
+			<Card class="flex flex-col items-start gap-3">
+				<p class="font-semibold text-rose-edge" role="alert">{failed}</p>
 				<p class="text-sm text-text-muted">Heb je <code>ai/sql/006_grammar_questions.sql</code> al gedraaid?</p>
 				<Button variant="secondary" onclick={load}>Opnieuw proberen</Button>
 			</Card>

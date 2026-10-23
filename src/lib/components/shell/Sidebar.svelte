@@ -22,8 +22,12 @@
 	</div>
 
 	<nav aria-label="Hoofdmenu" class="flex flex-col gap-1 px-3">
-		{#each NAV as item (item.href)}
+		{#each NAV as item, i (item.href)}
 			{@const active = isActive(item, page.url.pathname)}
+			{#if i === 0 || NAV[i - 1]?.group !== item.group}
+				<p class={['px-3 text-xs font-semibold tracking-wide text-text-muted uppercase', i === 0 ? 'hidden' : 'mt-3 hidden lg:block']}>{item.group}</p>
+				{#if i > 0}<hr class="mx-2 my-2 border-border lg:hidden" />{/if}
+			{/if}
 			<a
 				href={item.href}
 				title={item.label}

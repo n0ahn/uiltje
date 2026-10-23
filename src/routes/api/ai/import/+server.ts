@@ -66,9 +66,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (wait > 0) return fail(429, 'limit', `Even rustig aan: je kunt het over ${Math.ceil(wait / 60)} min opnieuw proberen.`, { 'retry-after': String(wait) });
 
 	try {
-		const { result, model } = await runAiImport(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
+		const { result } = await runAiImport(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
 		if (!result.ok) return fail(422, 'no_rows', result.issues[0] ?? 'Er is niets bruikbaars gevonden.');
-		return json({ ok: true, set: result.set, notes: result.notes, model });
+		return json({ ok: true, set: result.set, notes: result.notes });
 	} catch (error) {
 		if (error instanceof AiError) return fail(STATUS[error.code], error.code, error.message);
 		console.error('AI import failed', error);

@@ -30,8 +30,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (wait > 0) return fail(429, 'limit', `Even rustig aan: nakijken kan over ${Math.ceil(wait / 60)} min weer.`, { 'retry-after': String(wait) });
 
 	try {
-		const { results, model } = await gradeExplanations(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
-		return json({ ok: true, results, model });
+		const { results } = await gradeExplanations(body, { apiKey: GEMINI_API_KEY, models: parseModels(GEMINI_MODELS, DEFAULT_MODELS) });
+		return json({ ok: true, results });
 	} catch (error) {
 		if (error instanceof AiError) return fail(STATUS[error.code], error.code, error.message);
 		console.error('Explain check failed', error);

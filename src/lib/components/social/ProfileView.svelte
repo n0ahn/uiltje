@@ -63,7 +63,7 @@
 		<h1 class="font-heading text-2xl font-semibold">{phase === 'failed' ? 'Laden lukt niet' : 'Dit profiel is niet te zien'}</h1>
 		<p class="text-text-muted">
 			{phase === 'failed'
-				? 'Controleer je internetverbinding en probeer het opnieuw. Heb je 003_profiles.sql al uitgevoerd?'
+				? 'Controleer je internetverbinding en probeer het opnieuw.'
 				: 'Je ziet alleen het profiel van je vrienden. Misschien bestaat deze gebruiker niet, of zijn jullie nog geen vrienden.'}
 		</p>
 		<Button href="/friends">Naar vrienden</Button>

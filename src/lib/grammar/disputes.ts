@@ -52,14 +52,14 @@ export function createDisputesApi(client: SupabaseClient) {
 			});
 			if (error) {
 				if (error.code === '42501') throw new StorageError('Je hebt vandaag al veel bezwaren ingediend. Probeer het morgen opnieuw.');
-				fail(error, 'Het bezwaar kon niet verstuurd worden. Is de SQL (007) al gedraaid?');
+				fail(error, 'Het bezwaar kon niet verstuurd worden. Probeer het later opnieuw.');
 			}
 		},
 
 		/** Owner only (anyone else gets no rows). Newest status first: waiting ones, oldest first. */
 		async list(status: DisputeStatus): Promise<Dispute[]> {
 			const { data, error } = await client.from('explain_disputes').select(COLUMNS).eq('status', status).order('created_at', { ascending: status === 'new' });
-			if (error) fail(error, 'Bezwaren laden is mislukt. Is de SQL (007) al gedraaid?');
+			if (error) fail(error, 'Bezwaren laden is mislukt.');
 			return z.array(RowSchema).parse(data ?? []).map((r) => ({
 				id: r.id,
 				ref: r.ref,

@@ -84,7 +84,6 @@
 			<h1 class="font-heading text-3xl font-semibold">Ranglijst</h1>
 			<p class="text-text-muted">Jij en je vrienden. Alleen aantallen, nooit je sets of antwoorden.</p>
 		</div>
-		<Button href="/friends" variant="secondary"><Icon name="users" size={18} /> Vrienden</Button>
 	</div>
 
 	{#if !data.user}
@@ -102,7 +101,7 @@
 
 		{#if failed}
 			<Card class="flex flex-col items-start gap-3">
-				<p>De ranglijst laden lukt niet. Controleer je internetverbinding en probeer het opnieuw. Heb je <code>002_social.sql</code> al uitgevoerd?</p>
+				<p>De ranglijst laden lukt niet. Controleer je internetverbinding en probeer het opnieuw.</p>
 				<Button variant="secondary" onclick={load}>Opnieuw proberen</Button>
 			</Card>
 		{:else if rows === null}

@@ -101,7 +101,10 @@
 	let inputEl: HTMLInputElement | undefined = $state();
 	// Greek keyboard: follows the set of the word that is being asked.
 	const keyboardByRow = new Map(rows.map((r) => [r.key, r.settings.keyboard]));
-	const greek = $derived(keyboardByRow.get((lv?.q ?? tv?.q)?.rowKey ?? '') === 'greek');
+	const greek = $derived.by(() => {
+		const q = lv?.q ?? tv?.q;
+		return keyboardByRow.get(q && 'rowKey' in q ? q.rowKey : '') === 'greek';
+	});
 
 	// Fresh fields for every new question (and focus the field).
 	const questionId = $derived(lv?.q ? (lv.q.step === 'intro' ? `intro${lv.q.round}` : `${lv.q.step}:${lv.q.rowKey}:${lv.p.learned}:${lv.p.round}`) : tv ? `t${tv.index}` : '');

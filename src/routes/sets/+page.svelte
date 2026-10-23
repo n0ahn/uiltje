@@ -9,6 +9,8 @@
 	import MenuItem from '#lib/components/ui/MenuItem.svelte';
 	import Modal from '#lib/components/ui/Modal.svelte';
 	import Owl from '#lib/components/ui/Owl.svelte';
+	import OptionGroup from '#lib/components/ui/OptionGroup.svelte';
+	import SelectMenu from '#lib/components/ui/SelectMenu.svelte';
 	import CardGridSkeleton from '#lib/components/skeleton/CardGridSkeleton.svelte';
 	import { toasts } from '#lib/state/toast.svelte.js';
 	import { getStorage } from '#lib/storage/index.js';
@@ -20,6 +22,15 @@
 	// Finding and ordering: search, group by folder or subject, sort.
 	type GroupBy = 'folder' | 'subject' | 'none';
 	let query = $state('');
+	const GROUP_OPTIONS: { id: GroupBy; name: string }[] = [
+		{ id: 'folder', name: 'Op map' },
+		{ id: 'subject', name: 'Op vak' },
+		{ id: 'none', name: 'Niet' }
+	];
+	const SORT_OPTIONS: { id: 'recent' | 'name'; name: string }[] = [
+		{ id: 'recent', name: 'Laatst gewijzigd' },
+		{ id: 'name', name: 'Naam' }
+	];
 	let groupBy = $state<GroupBy>('folder');
 	let sort = $state<'recent' | 'name'>('recent');
 
@@ -37,6 +48,11 @@
 
 	const folderOf = (s: SetSummary) => s.folder?.trim() ?? '';
 	const folders = $derived([...new Set((sets ?? []).map(folderOf).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'nl')));
+	const moveOptions = $derived([
+		...folders.map((name) => ({ id: name, name })),
+		{ id: NO_FOLDER, name: 'Zonder map' },
+		{ id: NEW_FOLDER, name: 'Nieuwe map…' }
+	]);
 	const hasUnfiled = $derived((sets ?? []).some((s) => folderOf(s) === ''));
 	const needle = $derived(query.trim().toLowerCase());
 	const visible = $derived(
@@ -154,6 +170,7 @@
 			<Button variant="secondary" onclick={() => (selecting = true)}><Icon name="layers" size={18} /> Ordenen</Button>
 		{/if}
 		<ImportMenu />
+		<Button href="/bibliotheek" variant="secondary"><Icon name="cards" size={18} /> Kant en klaar</Button>
 		<Button href="/sets/ai" variant="secondary"><Icon name="sparkles" size={18} /> Maken met AI</Button>
 		<Button href="/sets/new"><Icon name="plus" size={18} /> Nieuwe set</Button>
 	{/if}
@@ -169,6 +186,7 @@
 		<div class="flex flex-wrap justify-center gap-3">
 			<Button href="/sets/new">Eerste set maken</Button>
 			<Button href="/sets/ai" variant="secondary"><Icon name="sparkles" size={18} /> Met AI</Button>
+			<Button href="/bibliotheek" variant="secondary"><Icon name="cards" size={18} /> Kant en klaar</Button>
 		</div>
 	</div>
 {:else}
@@ -180,21 +198,8 @@
 				<Icon name="search" size={18} class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-text-muted" />
 				<input class="input pl-11" type="search" bind:value={query} placeholder="Zoek op titel, vak of map" />
 			</label>
-			<label class="flex items-center gap-2 text-sm font-semibold text-text-muted">
-				Groeperen
-				<select class="input w-auto" bind:value={groupBy} aria-label="Groeperen op">
-					<option value="folder">Op map</option>
-					<option value="subject">Op vak</option>
-					<option value="none">Niet</option>
-				</select>
-			</label>
-			<label class="flex items-center gap-2 text-sm font-semibold text-text-muted">
-				Sorteren
-				<select class="input w-auto" bind:value={sort} aria-label="Sorteren op">
-					<option value="recent">Laatst gewijzigd</option>
-					<option value="name">Naam</option>
-				</select>
-			</label>
+			<SelectMenu label="Groeperen" options={GROUP_OPTIONS} bind:value={groupBy} />
+			<SelectMenu label="Sorteren" options={SORT_OPTIONS} bind:value={sort} align="right" />
 		</div>
 	{/if}
 
@@ -287,15 +292,10 @@
 {/if}
 
 <Modal bind:open={moveOpen} title="Naar map verplaatsen" onclose={forgetSingle}>
-	<fieldset class="flex flex-col gap-2">
-		<legend class="mb-2 text-text-muted">{selected.length} {selected.length === 1 ? 'set' : 'sets'} verplaatsen naar:</legend>
-		{#each folders as name (name)}
-			<label class="flex items-center gap-2"><input type="radio" name="move-folder" value={name} bind:group={moveChoice} /> {name}</label>
-		{/each}
-		<label class="flex items-center gap-2"><input type="radio" name="move-folder" value={NO_FOLDER} bind:group={moveChoice} /> Zonder map</label>
-		<label class="flex items-center gap-2"><input type="radio" name="move-folder" value={NEW_FOLDER} bind:group={moveChoice} /> Nieuwe map:</label>
-		<input class="input" bind:value={newFolder} maxlength="60" placeholder="bijv. Hoofdstuk 3" aria-label="Naam van de nieuwe map" disabled={moveChoice !== NEW_FOLDER} />
-	</fieldset>
+	<OptionGroup legend="{selected.length} {selected.length === 1 ? 'set' : 'sets'} verplaatsen naar" options={moveOptions} bind:value={moveChoice} cols={2} />
+	{#if moveChoice === NEW_FOLDER}
+		<input class="input mt-3" bind:value={newFolder} maxlength="60" placeholder="bijv. Hoofdstuk 3" aria-label="Naam van de nieuwe map" />
+	{/if}
 	{#snippet actions()}
 		<Button variant="ghost" onclick={() => (moveOpen = false)}>Annuleren</Button>
 		<Button disabled={busy || (moveChoice === NEW_FOLDER && newFolder.trim() === '')} onclick={applyMove} class="min-w-32">{busy ? 'Bezig…' : 'Verplaatsen'}</Button>

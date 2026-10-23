@@ -155,7 +155,6 @@
 			<h1 class="font-heading text-3xl font-semibold">Vrienden</h1>
 			<p class="text-text-muted">Oefen samen en deel sets met elkaar.</p>
 		</div>
-		{#if data.user}<Button href="/leaderboard" variant="secondary"><Icon name="trophy" size={18} /> Ranglijst</Button>{/if}
 	</div>
 
 	{#if !data.user}
@@ -167,7 +166,7 @@
 		</Card>
 	{:else if failed && friendships === null}
 		<Card class="flex flex-col items-start gap-3">
-			<p>Je vrienden laden lukt niet. Controleer je internetverbinding en probeer het opnieuw. Heb je <code>002_social.sql</code> al uitgevoerd?</p>
+			<p>Je vrienden laden lukt niet. Controleer je internetverbinding en probeer het opnieuw.</p>
 			<Button variant="secondary" onclick={load}>Opnieuw proberen</Button>
 		</Card>
 	{:else if friendships === null}
