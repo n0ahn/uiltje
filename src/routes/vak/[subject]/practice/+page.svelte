@@ -10,13 +10,17 @@
 	import { sameSubject, subjectSlug } from '#lib/utils/subject.js';
 
 	let sets = $state<StudySet[] | null>(null);
+	// ?map=<folder> or ?nomap=1 comes from "Oefen deze map" on the subject page: only the sets of that folder.
+	const folderParam = page.url.searchParams.get('map')?.trim() || null;
+	const noFolder = page.url.searchParams.get('nomap') === '1';
+	const folderOf = (folder: string | null | undefined) => folder?.trim() ?? '';
 	// SvelteKit has already decoded the route parameter.
 	const subject = $derived(page.params.subject ?? '');
 	const name = $derived(sets?.[0]?.subject.trim() || subject);
 
 	onMount(async () => {
 		const storage = getStorage();
-		const summaries = (await storage.listSets()).filter((s) => sameSubject(s.subject, subject));
+		const summaries = (await storage.listSets()).filter((s) => sameSubject(s.subject, subject)).filter((s) => (folderParam ? folderOf(s.folder) === folderParam : noFolder ? folderOf(s.folder) === '' : true));
 		const loaded = await Promise.all(summaries.map((s) => storage.getSet(s.id)));
 		sets = loaded.filter((s): s is StudySet => s !== null);
 	});
@@ -35,5 +39,5 @@
 		</div>
 	</div>
 {:else}
-	<PracticeScreen {sets} title={name} backHref="/vak/{subjectSlug(name)}" />
+	<PracticeScreen {sets} title={folderParam ? `${name} · ${folderParam}` : name} backHref="/vak/{subjectSlug(name)}" />
 {/if}

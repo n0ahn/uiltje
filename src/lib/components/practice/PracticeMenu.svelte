@@ -15,7 +15,9 @@
 		/** Show "Uitleggen": only for sets that have lists of begrippen (stijlfiguren, grammatica). */
 		explain?: boolean;
 	};
+	// The minigames live next to the practice route: /sets/<id>/practice -> /sets/<id>/minigames.
 	let { href, size = 'lg', label = 'Oefenen', disabled = false, extra = '', onbeforestart, explain = false }: Props = $props();
+	const minigamesHref = $derived(`${href.replace(/\/practice$/, '')}/minigames${extra.replace(/^&/, '?')}`);
 </script>
 
 {#if disabled}
@@ -30,6 +32,7 @@
 		<MenuItem href="{href}?mode=hints{extra}" onclick={onbeforestart} icon="bulb">Hints</MenuItem>
 		<MenuItem href="{href}?mode=choice{extra}" onclick={onbeforestart} icon="list">Meerkeuze</MenuItem>
 		<MenuItem href="{href}?mode=flashcards{extra}" onclick={onbeforestart} icon="cards">Flashcards</MenuItem>
+		<MenuItem href={minigamesHref} onclick={onbeforestart} icon="gamepad" badge="Nieuw">Minigames</MenuItem>
 		{#if explain}<MenuItem href="{href}?mode=explain{extra}" onclick={onbeforestart} icon="bulb" badge="Nieuw">Uitleggen</MenuItem>{/if}
 	</Dropdown>
 {/if}

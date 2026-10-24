@@ -50,3 +50,5 @@ Always read this file, ai/NOTES.md and the relevant ai/PLAN.md section before wo
 - Name it `updates/uiltje-update-YYYYMMDD-HHMM.zip` (the script always applies the newest zip in `./updates`).
 - Deleted files go in a `DELETE.txt` at the zip root, one project path per line; `update.sh` removes them.
 - Update `ai/TODO.md`, `ai/NOTES.md` and `ai/NEXT.md` inside the same zip. Do not touch `update.sh` unless it needs fixing.
+- Every delivered update that changes something a user can see or use gets an entry at the TOP of `CHANGELOG` in `src/lib/changelog.ts`, in the same zip: next version as `id` and in the title, today's date, `size` and short Dutch lines marked `new`, `changed` or `fixed`. `UpdateModal` then shows it once per device to everyone, guests included. Skip it only for purely internal changes (refactors, docs).
+- Versioning: the app is pre-1.0. The first version is 0.90; every update after it counts up one step: 0.91, 0.92, 0.93, ... The AI decides whether an update is `big` or `small` and sets `size` accordingly (shown in the modal), but this does not change the numbering. Never jump to 1.0 on your own: only the owner decides when the app is 1.0.

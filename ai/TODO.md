@@ -177,3 +177,24 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [ ] Run `ai/sql/009_challenge_whole_set.sql` in the Supabase SQL editor
 - [ ] Try with two accounts: a test of 10 forms does not count, a test of all forms does, a set with rijtjes + woorden needs both
 - [ ] Tests taken before this update have no whole-set mark and do not count: take the test again
+
+## Minigames (2026-10-24)
+- [x] "Minigames" entry in the Oefenen menu (`PracticeMenu`) -> `/sets/[id]/minigames` (hub with game cards; `?selection=1` is passed on)
+- [x] Uilenvangst (`/sets/[id]/minigames/uilenvangst`): start screen, game, result (stars, lastige uilen, retry); progress and session log like the other modes
+- [x] Engine `engine/catch.ts` (pure, tested with 25 scenario checks) + new SVGs (canopy/trunk, meadow with bushes, basket, nest, butterfly, stars, card art)
+- [x] Three more games shown as "Binnenkort": Uilen-memory, Nachtvlucht, Nestbouwer
+- [ ] Try in the real app: light/dark, phone (3 lanes), keyboard (1-4, arrows, space, P), pause, reduced motion, a rijtje, a begrippen list, selection practice
+- [ ] Build the next game (see NEXT.md)
+
+## Groepen op de vakpagina (2026-10-24)
+- [x] `components/sets/SetOverview.svelte`: search, group by folder, sort, folder filter, Ordenen (move to folder / delete), card menus; used by `/sets` and `/vak/[subject]`
+- [x] `/vak/[subject]` now has all of it, limited to that subject (so in Latijn you can make folders such as "Hoofdstuk 3" via Ordenen > Naar map… > Nieuwe map…); "Op vak" grouping is hidden there
+- [ ] Try: `/sets` still behaves as before (refactor not run in a browser), and `/vak/latijn`: make a folder, move sets, filter, delete
+- [ ] Idea: practise one folder only ("Oefen deze map"); needs a folder filter on `/vak/[subject]/practice`
+- [x] "Oefen deze map" (and "Oefen deze sets" for sets without a folder) on the subject page: `/vak/[subject]/practice?map=<folder>` or `?nomap=1`
+
+## Oefen deze map op /sets + update-modal (2026-10-24)
+- [x] "Oefen deze map" / "Oefen deze sets" now also on `/sets` (all subjects mixed): new route `/sets/practice?map=<folder>` or `?nomap=1`
+- [x] Update modal for everyone (guests too): `src/lib/changelog.ts` (newest first) + `state/updates.svelte.ts` + `shell/UpdateModal.svelte`, mounted in the root layout; shows once per device after an update
+- [ ] Try: folder practice on `/sets` with sets of two subjects; the modal after clearing `uiltje:last-seen-update` in localStorage; it must wait on practice/minigame pages
+- [ ] Every future update: add an entry at the TOP of `CHANGELOG` with the next version (0.90, then 0.91, 0.92, ...; AI sets `size` big/small; 1.0 only when the owner says)

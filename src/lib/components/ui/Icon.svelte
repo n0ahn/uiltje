@@ -48,7 +48,9 @@
 		| 'bell'
 		| 'sparkles'
 		| 'heart'
-		| 'folder';
+		| 'folder'
+		| 'gamepad'
+		| 'pause';
 </script>
 
 <script lang="ts">
@@ -101,6 +103,8 @@
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import FolderIcon from '@lucide/svelte/icons/folder';
+	import Gamepad2Icon from '@lucide/svelte/icons/gamepad-2';
+	import PauseIcon from '@lucide/svelte/icons/pause';
 
 	// Icons come from Lucide (https://lucide.dev). Keep our own names so components do not depend on the library.
 	const ICONS = {
@@ -152,7 +156,9 @@
 		bell: BellIcon,
 		sparkles: SparklesIcon,
 		heart: HeartIcon,
-		folder: FolderIcon
+		folder: FolderIcon,
+		gamepad: Gamepad2Icon,
+		pause: PauseIcon
 	};
 	// Solid icons look friendlier for "play" and "flame".
 	const FILLED = new Set<IconName>(['play', 'flame']);

@@ -9,6 +9,7 @@
 	import AppShell from '#lib/components/shell/AppShell.svelte';
 	import { installClickSounds } from '#lib/audio/clicks.js';
 	import GuestImportModal from '#lib/components/shell/GuestImportModal.svelte';
+	import UpdateModal from '#lib/components/shell/UpdateModal.svelte';
 	import { auth } from '#lib/state/auth.svelte.js';
 	import { notifications } from '#lib/state/notifications.svelte.js';
 	import { overview } from '#lib/state/overview.svelte.js';
@@ -94,3 +95,4 @@
 	{@render children()}
 </AppShell>
 <GuestImportModal />
+<UpdateModal />

@@ -10,9 +10,9 @@
 	type Props = { name: string; username: string; children: Snippet };
 	let { name, username, children }: Props = $props();
 
-	// Screens that bring their own full-page look: login (mint game world) and practice (distraction free).
+	// Screens that bring their own full-page look: login, practice and the minigames themselves (distraction free).
 	const path = $derived(page.url.pathname);
-	const bare = $derived(path === '/login' || path.startsWith('/login/') || path.endsWith('/practice'));
+	const bare = $derived(path === '/login' || path.startsWith('/login/') || path.endsWith('/practice') || /\/minigames\/[^/]+\/?$/.test(path));
 </script>
 
 {#if bare}

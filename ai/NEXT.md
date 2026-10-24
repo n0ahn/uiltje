@@ -46,6 +46,10 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 9.  **Vocab polish.** Try the learn flow with real classmates' sets and tune `roundSize`, spacing and distractor choice in `engine/vocab.ts`. The Meerkeuze, Flashcards, Dictee, Spelling and Hints modes exist now (NOTES "Practice modes"); try them and tune. Vocab rows in the same list with several translations are accepted in any of them.
 9. **Phase 10 default lists.** Curated library that users can add to their own sets.
 
+## Minigames
+- Uilenvangst is built (NOTES "Minigames"); not yet seen in a browser. First: `npm run check`, then play it (desktop + phone, light/dark, keyboard, pause, a rijtje and a begrippen list) and tune `fallSeconds` / `REQUEUE_GAP` in `engine/catch.ts`.
+- Next games (shown as "Binnenkort"): Uilen-memory (pairs), Nachtvlucht (fly through the right gap), Nestbouwer (drag cards into nests, for rijtjes). Add each to `GAMES` in `components/minigames/config.ts` and set `ready: true`.
+
 ## Open questions
 
 - Correctness strategy for generated questions (NOTES.md open question). Blocks Phase 9.
@@ -63,3 +67,4 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 - Run `ai/sql/008_notes_and_replies.sql` (after 007) for explanations on approved questions and dispute replies.
 - 2026-10-24 (later): Uitleggen checks per begrip with choice on "bijna", a "Bezwaar" button and repeats of wrong begrippen (NOTES "Uitleggen: check per begrip"). Try: wrong answers come back, an objection shows on /review, offline check + retry. Run `npm run check`.
 - 2026-10-24 (later): challenges only count a test of the whole set (NOTES "Challenges only count a whole-set test"). Run `ai/sql/009_challenge_whole_set.sql`, then try partial vs whole tests with two accounts. Run `npm run check`.
+- Update modal: add a `CHANGELOG` entry (src/lib/changelog.ts, newest first, next version: 0.91, 0.92, ...; set `size`) with every delivered update.
