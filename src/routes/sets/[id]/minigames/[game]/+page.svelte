@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { gameById, type CatchConfig } from '#lib/components/minigames/config.js';
+	import { gameById, type CatchConfig, type MemoryConfig } from '#lib/components/minigames/config.js';
+	import MemoryRunner from '#lib/components/minigames/MemoryRunner.svelte';
+	import MemoryStart from '#lib/components/minigames/MemoryStart.svelte';
 	import UilenvangstRunner from '#lib/components/minigames/UilenvangstRunner.svelte';
 	import UilenvangstStart from '#lib/components/minigames/UilenvangstStart.svelte';
 	import PracticeSkeleton from '#lib/components/skeleton/PracticeSkeleton.svelte';
@@ -12,15 +14,16 @@
 	import { getStorage } from '#lib/storage/index.js';
 	import { onlyPicked, readSelection } from '#lib/utils/selection.js';
 
-	// One minigame: start screen -> game -> result. Only Uilenvangst is playable so far; the other games show Binnenkort on the hub.
+	// One minigame: start screen -> game -> result. Uilenvangst and Uilen-memory are playable so far; the other games show Binnenkort on the hub.
 	let set = $state<StudySet | null>(null);
 	let missing = $state(false);
 	let partial = $state(false);
 	let config = $state<CatchConfig | null>(null);
+	let memoryConfig = $state<MemoryConfig | null>(null);
 	let run = $state(0);
 
 	const game = $derived(gameById(page.params.game ?? ''));
-	const playable = $derived(game?.id === 'uilenvangst');
+	const playable = $derived(game?.id === 'uilenvangst' || game?.id === 'uilen-memory');
 	const hubHref = $derived(`/sets/${page.params.id ?? ''}/minigames${page.url.searchParams.get('selection') === '1' ? '?selection=1' : ''}`);
 
 	onMount(async () => {
@@ -41,6 +44,10 @@
 
 	function restart(next: CatchConfig | null) {
 		config = next;
+		run++;
+	}
+	function restartMemory(next: MemoryConfig | null) {
+		memoryConfig = next;
 		run++;
 	}
 </script>
@@ -65,6 +72,14 @@
 	<div class="min-h-dvh bg-bg px-4 py-6 sm:px-8 sm:py-10">
 		{#if !set}
 			<PracticeSkeleton />
+		{:else if game.id === 'uilen-memory'}
+			{#if !memoryConfig}
+				<MemoryStart sets={[set]} title={partial ? `${set.title} (selectie)` : set.title} {hubHref} onstart={(c) => (memoryConfig = c)} />
+			{:else}
+				{#key run}
+					<MemoryRunner sets={[set]} config={memoryConfig} title={partial ? `${set.title} (selectie)` : set.title} backHref="/sets/{set.id}" {hubHref} onrestart={restartMemory} />
+				{/key}
+			{/if}
 		{:else if !config}
 			<UilenvangstStart sets={[set]} title={partial ? `${set.title} (selectie)` : set.title} {hubHref} onstart={(c) => (config = c)} />
 		{:else}

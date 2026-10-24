@@ -30,7 +30,7 @@ export const GAMES: readonly GameInfo[] = [
 		text: 'Draai de bladeren om en zoek de paren: een term en zijn vertaling horen bij elkaar.',
 		for: ['Woordjes', 'Begrippen'],
 		art: 'memory',
-		ready: false
+		ready: true
 	},
 	{
 		id: 'nachtvlucht',
@@ -71,3 +71,15 @@ export const SPEED_OPTIONS: readonly { id: CatchSpeed; name: string; text: strin
 	{ id: 'normal', name: 'Normaal', text: 'Een prettig tempo voor woorden die je al een beetje kent.' },
 	{ id: 'fast', name: 'Snel', text: 'Voor wie het al weet: de uilen vallen vlot.' }
 ];
+
+/** Uilen-memory: no direction (a pair is a term and its answer) and no speed. */
+export type MemoryConfig = {
+	/** setId -> listIds. */
+	selection: Record<string, string[]>;
+	/** How many pairs to find. */
+	pairs: number;
+	/** Retry: only these rows (row keys), null = everything that was selected. */
+	onlyRowKeys: string[] | null;
+};
+
+export const PAIR_CHOICES = [6, 8, 10, 12] as const;

@@ -198,3 +198,10 @@ Details live in PLAN.md (section numbers in brackets). Mark `[x]` when done and 
 - [x] Update modal for everyone (guests too): `src/lib/changelog.ts` (newest first) + `state/updates.svelte.ts` + `shell/UpdateModal.svelte`, mounted in the root layout; shows once per device after an update
 - [ ] Try: folder practice on `/sets` with sets of two subjects; the modal after clearing `uiltje:last-seen-update` in localStorage; it must wait on practice/minigame pages
 - [ ] Every future update: add an entry at the TOP of `CHANGELOG` with the next version (0.90, then 0.91, 0.92, ...; AI sets `size` big/small; 1.0 only when the owner says)
+
+## Uilen-memory (2026-10-24, version 0.91)
+- [x] `engine/memory.ts` (pure, tested with a 20-check scenario script): pairs of term + answer, unique texts only, mismatch resolves itself on the next flip
+- [x] `MemoryStart`, `MemoryRunner`, `MemoryResult`, `art/Leaf.svelte`; `uilen-memory` is `ready` in `minigames/config.ts` and wired into `/sets/[id]/minigames/[game]`
+- [x] CHANGELOG entry 0.91 (small)
+- [ ] Try in the real app: light/dark, phone (3 columns), keyboard (arrows + Enter), reduced motion, a rijtje, a begrippen list, "Alleen de lastige paren", selection practice (`?selection=1`)
+- [ ] Next game: Nachtvlucht or Nestbouwer

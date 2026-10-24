@@ -48,7 +48,7 @@ Snapshot of what to do next, derived from TODO.md, NOTES.md and the code in `src
 
 ## Minigames
 - Uilenvangst is built (NOTES "Minigames"); not yet seen in a browser. First: `npm run check`, then play it (desktop + phone, light/dark, keyboard, pause, a rijtje and a begrippen list) and tune `fallSeconds` / `REQUEUE_GAP` in `engine/catch.ts`.
-- Next games (shown as "Binnenkort"): Uilen-memory (pairs), Nachtvlucht (fly through the right gap), Nestbouwer (drag cards into nests, for rijtjes). Add each to `GAMES` in `components/minigames/config.ts` and set `ready: true`.
+- Uilen-memory is built (NOTES "Uilen-memory"), not yet seen in a browser: play it (4/5/6 columns on desktop, 3 on a phone, light/dark, keyboard arrows, a rijtje with duplicate labels, a begrippen list with long definitions, "Alleen de lastige paren"). Next games (shown as "Binnenkort"): Nachtvlucht (fly through the right gap), Nestbouwer (drag cards into nests, for rijtjes). Add each to `GAMES` in `components/minigames/config.ts` and set `ready: true`.
 
 ## Open questions
 

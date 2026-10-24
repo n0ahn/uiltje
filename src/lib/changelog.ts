@@ -15,6 +15,15 @@ export type Update = {
 
 export const CHANGELOG: Update[] = [
 	{
+		id: '0.91',
+		date: '2026-10-24',
+		title: 'Versie 0.91',
+		size: 'small',
+		changes: [
+			{ kind: 'new', text: 'Uilen-memory: een nieuwe minigame. Draai bladeren om en zoek de paren, een term en zijn antwoord. Te vinden onder Oefenen > Minigames.' }
+		]
+	},
+	{
 		id: '0.90',
 		date: '2026-10-24',
 		title: 'Versie 0.90',
